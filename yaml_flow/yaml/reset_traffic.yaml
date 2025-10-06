@@ -1,0 +1,21 @@
+{
+  "scenario_name": "reset_traffic",
+  "timeout_value": 10000,
+  "action_list": [
+    {
+      "action_type": "RESET"
+    },
+    {
+      "action_type": "TRAFFIC",
+      "action_data": {
+        "direction": "write",
+        "num_packets": 8,
+        "addr_base": 0,
+        "data_pattern": 2779077210
+      }
+    },
+    {
+      "action_type": "SELF_CHECK"
+    }
+  ]
+}
