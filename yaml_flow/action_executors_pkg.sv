@@ -156,11 +156,11 @@ package action_executors_pkg;
     
       if (d.direction == DIR_WRITE) begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_write(32'h0000_1A00 + i*2, 32'hA5A5_A5A5 + i); // masked in helper
+          send_apb_write(32'h0000_0000 + i*2, 32'hA5A5_A5A5 + i); // masked in helper
         end
       end else begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_read(32'h0000_1A00 + i*2, r32);
+          send_apb_read(32'h0000_0000 + i*2, r32);
         end
       end
     endtask
