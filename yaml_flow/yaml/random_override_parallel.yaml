@@ -1,0 +1,29 @@
+{
+  "scenario_name": "random_override_parallel",
+  "timeout_value": 15000,
+  "action_list": [
+    {
+      "action_type": "PARALLEL_GROUP",
+      "action_data": {
+        "parallel_actions": [
+          {
+            "action_type": "APB_BASE_SEQ",
+            "action_data": {
+              "num_iters": 20,
+              "use_override": true
+            }
+          },
+          {
+            "action_type": "APB_REGISTER_SEQ",
+            "action_data": {
+              "num_iters": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "action_type": "SELF_CHECK"
+    }
+  ]
+}

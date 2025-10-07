@@ -2,6 +2,9 @@
 package action_executors_pkg;
   import uvm_pkg::*;                 `include "uvm_macros.svh"
   import apb_pkg::*;                  // apb_seq_item / apb_sequencer
+  import apb_regs_pkg::*;             // apb_reg_block
+  import chip_seq_lib_pkg::*;         // apb_register_seq
+  import apb_test_pkg::*;             // apb_override_tr
   import avry_yaml_types_pkg::*;      // stimulus_action_t, traffic_action_data, parallel_group_t, DIR_*, etc.
 
   // --------------------------------------------------------------------------
@@ -13,6 +16,8 @@ package action_executors_pkg;
     // Context set by registry before execute()
     uvm_sequence_base  m_parent_seq;
     uvm_sequencer_base m_sequencer;
+
+    static apb_reg_block m_reg_block;
 
     function new(string name="stimulus_action_executor_base");
       super.new(name);
@@ -52,6 +57,14 @@ package action_executors_pkg;
       r16  = req.tr_rdata;
       data = {16'h0000, r16};
     endtask
+
+    static function void set_reg_block(apb_reg_block blk);
+      m_reg_block = blk;
+    endfunction
+
+    static function apb_reg_block get_reg_block();
+      return m_reg_block;
+    endfunction
 
   endclass
 
@@ -95,6 +108,7 @@ package action_executors_pkg;
       ex.m_sequencer  = seqr;
       ex.execute(a);
     endtask
+
   endclass
 
   // Proxy sequence to execute one stimulus_action_t on a sequencer
@@ -226,6 +240,96 @@ package action_executors_pkg;
   endclass
 
   // --------------------------------------------------------------------------
+  // APB_BASE_SEQ – launch apb_base_seq with optional override
+  // --------------------------------------------------------------------------
+  class apb_base_seq_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(apb_base_seq_action_executor)
+
+    static bit s_override_set;
+
+    function new(string name="apb_base_seq_action_executor");
+      super.new(name);
+    endfunction
+
+    virtual task execute(stimulus_action_t a);
+      base_seq_action_data d;
+      int                   i, n;
+      bit                   do_override;
+      apb_base_seq          seq;
+
+      if ((m_parent_seq==null) || (m_sequencer==null)) begin
+        `uvm_error(get_type_name(), "No parent sequence or sequencer bound")
+        return;
+      end
+
+      if (!$cast(d, a.action_data)) begin
+        n = 1;
+        do_override = 0;
+      end else begin
+        n = (d.num_iters <= 0) ? 1 : d.num_iters;
+        do_override = d.use_override;
+      end
+
+      if (do_override && !s_override_set) begin
+        apb_seq_item::type_id::set_type_override(apb_override_tr::get_type());
+        s_override_set = 1;
+        `uvm_info(get_type_name(), "Enabled apb_override_tr type override", UVM_LOW)
+      end
+
+      for (i = 0; i < n; i++) begin
+        seq = apb_base_seq::type_id::create($sformatf("base_seq_%0d", i));
+        if (!seq.randomize()) begin
+          `uvm_warning(get_type_name(), $sformatf("Randomization failed for iteration %0d", i))
+        end
+        seq.start(m_sequencer, m_parent_seq);
+      end
+    endtask
+  endclass
+
+  bit apb_base_seq_action_executor::s_override_set = 0;
+
+  // --------------------------------------------------------------------------
+  // APB_REGISTER_SEQ – launch apb_register_seq using configured reg block
+  // --------------------------------------------------------------------------
+  class apb_register_seq_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(apb_register_seq_action_executor)
+
+    function new(string name="apb_register_seq_action_executor");
+      super.new(name);
+    endfunction
+
+    virtual task execute(stimulus_action_t a);
+      register_seq_action_data d;
+      apb_reg_block            blk;
+      apb_register_seq         seq;
+      int                      i, n;
+
+      if ((m_parent_seq==null) || (m_sequencer==null)) begin
+        `uvm_error(get_type_name(), "No parent sequence or sequencer bound")
+        return;
+      end
+
+      blk = get_reg_block();
+
+      if (blk == null) begin
+        `uvm_error(get_type_name(), "No APB register block configured for register sequence")
+        return;
+      end
+
+      if (!$cast(d, a.action_data)) n = 1; else n = (d.num_iters <= 0) ? 1 : d.num_iters;
+
+      for (i = 0; i < n; i++) begin
+        seq = apb_register_seq::type_id::create($sformatf("reg_seq_%0d", i));
+        seq.model = blk;
+        if (!seq.randomize()) begin
+          `uvm_warning(get_type_name(), $sformatf("Randomization failed for iteration %0d", i))
+        end
+        seq.start(m_sequencer, m_parent_seq);
+      end
+    endtask
+  endclass
+
+  // --------------------------------------------------------------------------
   // PARALLEL_GROUP
   // --------------------------------------------------------------------------
   class parallel_group_action_executor extends stimulus_action_executor_base;
@@ -284,6 +388,8 @@ package action_executors_pkg;
       end
     endtask
   endclass
+
+  apb_reg_block stimulus_action_executor_base::m_reg_block = null;
 
 endpackage
 

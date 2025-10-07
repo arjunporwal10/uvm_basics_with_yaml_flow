@@ -3,7 +3,7 @@
 
 Files are under `yaml_flow/`:
 - `avry_yaml_types_pkg.sv`: action types and scenario cfg
-- `action_executors_pkg.sv`: executors for RESET/TRAFFIC/PARALLEL/SERIAL/SELF_CHECK
+- `action_executors_pkg.sv`: executors for RESET/TRAFFIC/PARALLEL/SERIAL/SELF_CHECK plus APB base/register sequences
 - `stimulus_auto_builder_pkg.sv`: helpers to build actions programmatically
 - `avry_flexible_seq_apb.sv`: flexible sequence that interprets action list
 - `avry_yaml_tests_pkg.sv`: `yaml_test` to run flow on APB sequencer
@@ -20,4 +20,5 @@ Files are under `yaml_flow/`:
    make
    ./simv +UVM_TESTNAME=yaml_test +SCENARIO=reset_traffic
    ./simv +UVM_TESTNAME=yaml_test +SCENARIO=parallel_mix
-   ```
+   ./simv +UVM_TESTNAME=yaml_test +SCENARIO=random_override_parallel
+  ```

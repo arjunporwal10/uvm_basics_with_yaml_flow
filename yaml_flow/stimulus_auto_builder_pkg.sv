@@ -62,7 +62,29 @@ package stimulus_auto_builder_pkg;
     static function stimulus_action_t build_read_tr(int unsigned base=32'h0 );
       stimulus_action_t a; traffic_action_data d;
       a=new(); a.action_type="READ_TXN";
-      d=new(); d.addr_base=base; 
+      d=new(); d.addr_base=base;
+      a.action_data=d; return a;
+    endfunction
+
+    static function stimulus_action_t build_apb_base_seq(int iterations=1, bit use_override=0);
+      stimulus_action_t    a; base_seq_action_data d;
+      int                  iters;
+
+      iters = (iterations <= 0) ? 1 : iterations;
+
+      a=new(); a.action_type="APB_BASE_SEQ";
+      d=new(); d.num_iters=iters; d.use_override=use_override;
+      a.action_data=d; return a;
+    endfunction
+
+    static function stimulus_action_t build_apb_register_seq(int iterations=1);
+      stimulus_action_t       a; register_seq_action_data d;
+      int                     iters;
+
+      iters = (iterations <= 0) ? 1 : iterations;
+
+      a=new(); a.action_type="APB_REGISTER_SEQ";
+      d=new(); d.num_iters=iters;
       a.action_data=d; return a;
     endfunction
 
