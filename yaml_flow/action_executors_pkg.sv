@@ -345,7 +345,6 @@ package action_executors_pkg;
     virtual task execute(stimulus_action_t a);
       parallel_group_t grp;
       int j;
-      exec_proxy_seq proxy;
   
       if (!$cast(grp, a.action_data)) begin
         `uvm_error(get_type_name(), "Missing/invalid parallel_group_t")
@@ -356,18 +355,27 @@ package action_executors_pkg;
                 $sformatf("Executing PARALLEL_GROUP (%0d actions)", grp.parallel_actions.size()),
                 UVM_LOW)
   
+      if ((m_parent_seq == null) || (m_sequencer == null)) begin
+        `uvm_error(get_type_name(), "No parent sequence or sequencer bound")
+        return;
+      end
+
       // Launch each sub-action as its own child sequence on the same sequencer.
-      // The UVM sequencer will arbitrate among these proxies, allowing interleaving.
-      fork : PAR_GROUP
-        for (j = 0; j < grp.parallel_actions.size(); j++) begin : EACH
-          automatic stimulus_action_t sub = grp.parallel_actions[j];
-          begin
-            proxy = exec_proxy_seq::type_id::create($sformatf("proxy_%0d", j));
-            proxy.m_sub = sub;
-            proxy.start(m_sequencer); // start on the same APB sequencer
-          end
-        end
-      join  // wait for all proxies to finish before returning
+      // Use fork/join_none so that every proxy starts in its own process and
+      // the sequencer can arbitrate between them, allowing true parallelism.
+      for (j = 0; j < grp.parallel_actions.size(); j++) begin
+        automatic stimulus_action_t sub = grp.parallel_actions[j];
+        automatic exec_proxy_seq    proxy =
+            exec_proxy_seq::type_id::create($sformatf("proxy_%0d", j));
+        proxy.m_sub = sub;
+        fork
+          proxy.start(m_sequencer, m_parent_seq); // share parent for arbitration
+        join_none
+      end
+
+      // Ensure we wait for all forked proxy sequences to finish before
+      // returning to the caller.
+      wait fork;
     endtask
   endclass
 
