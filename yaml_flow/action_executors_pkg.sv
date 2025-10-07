@@ -245,7 +245,7 @@ package action_executors_pkg;
   class apb_base_seq_action_executor extends stimulus_action_executor_base;
     `uvm_object_utils(apb_base_seq_action_executor)
 
-    static bit s_override_set;
+    static bit s_override_set = 0;
 
     function new(string name="apb_base_seq_action_executor");
       super.new(name);
@@ -286,7 +286,7 @@ package action_executors_pkg;
     endtask
   endclass
 
-  bit apb_base_seq_action_executor::s_override_set = 0;
+
 
   // --------------------------------------------------------------------------
   // APB_REGISTER_SEQ – launch apb_register_seq using configured reg block
