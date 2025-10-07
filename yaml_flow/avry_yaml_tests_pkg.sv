@@ -5,6 +5,7 @@ package avry_yaml_tests_pkg;
   import apb_test_pkg::*;                 // <-- provides apb_base_test
   import env_pkg::*;                  // env / m_env
   import apb_pkg::*;                  // apb_seq_item and agent types
+  import apb_regs_pkg::*;             // register model handle
 
   // YAML flow pieces
   import avry_yaml_types_pkg::*;      // avry_scenario_cfg, action types
@@ -23,6 +24,7 @@ package avry_yaml_tests_pkg;
 
     // Passed in by the test
     env                m_env;
+    apb_reg_block      reg_block;
 
     // Locals (declare up-front: VCS-friendly)
     avry_flexible_seq_apb seq;
@@ -56,6 +58,7 @@ package avry_yaml_tests_pkg;
 
       // Create seq
       seq = avry_flexible_seq_apb::type_id::create("seq");
+      seq.reg_block = reg_block;
 
       // Prefer the bench’s APB sequencer from env
       apb_sqr = m_env.m_apb_agent.m_apb_seqr;
@@ -91,6 +94,7 @@ package avry_yaml_tests_pkg;
 
       vseq = yaml_vseq::type_id::create("vseq");
       vseq.m_env = m_env;          // apb_base_test creates/keeps m_env
+      vseq.reg_block = m_apb_reg_block;
       vseq.start(null);            // vseq internally finds the APB sequencer
 
       phase.drop_objection(this);

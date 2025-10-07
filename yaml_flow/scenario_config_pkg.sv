@@ -43,6 +43,17 @@ package scenario_config_pkg;
     cfg.action_list.push_back(a_1);
     cfg.action_list.push_back(a_2);
   end
+  else if (name == "random_override_parallel") begin
+    cfg.scenario_name = "random_override_parallel";
+    cfg.timeout_value = 15000;
+    cfg.action_list.delete();
+    a_0_0 = stimulus_auto_builder::build_apb_base_seq(20, 1);
+    a_0_1 = stimulus_auto_builder::build_apb_register_seq(1);
+    a_0 = stimulus_auto_builder::build_parallel('{a_0_0, a_0_1});
+    a_1 = stimulus_auto_builder::build_self_check();
+    cfg.action_list.push_back(a_0);
+    cfg.action_list.push_back(a_1);
+  end
   else if (name == "reset_traffic") begin
     cfg.scenario_name = "reset_traffic";
     cfg.timeout_value = 10000;

@@ -2,6 +2,7 @@
 package avry_yaml_seq_pkg;
   import uvm_pkg::*;                     `include "uvm_macros.svh"
   import apb_pkg::*;                      // apb_seq_item, apb_sequencer
+  import apb_regs_pkg::*;                 // register block type
   import env_pkg::*;                      // environment types
   import avry_yaml_types_pkg::*;          // avry_scenario_cfg, payloads, stimulus_action_t
   import action_executors_pkg::*;         // action_executor_registry + executors
@@ -14,6 +15,7 @@ package avry_yaml_seq_pkg;
 
     // Scenario config selected from config_db or +SCENARIO
     avry_scenario_cfg cfg;
+    apb_reg_block     reg_block;
 
     function new(string name = "avry_flexible_seq_apb");
       super.new(name);
@@ -25,14 +27,26 @@ package avry_yaml_seq_pkg;
     function void register_executors_once();
       stimulus_action_executor_base h;
       if (action_executor_registry::get("RESET") == null) begin
-        h = reset_action_executor         ::type_id::create("exec_reset"); action_executor_registry::register("RESET",          h);
-        h = self_check_action_executor    ::type_id::create("exec_self");  action_executor_registry::register("SELF_CHECK",     h);
-        h = error_inject_action_executor  ::type_id::create("exec_err");   action_executor_registry::register("ERROR_INJECTION", h);
-        h = traffic_action_executor       ::type_id::create("exec_traf");  action_executor_registry::register("TRAFFIC",        h);
-        h = parallel_group_action_executor::type_id::create("exec_par");   action_executor_registry::register("PARALLEL_GROUP", h);
-        h = serial_group_action_executor  ::type_id::create("exec_ser");   action_executor_registry::register("SERIAL_GROUP",   h);
-        h = send_wr_action_executor       ::type_id::create("exec_wr");   action_executor_registry::register("WRITE_TXN",   h);
-        h = send_rd_action_executor       ::type_id::create("exec_rd");   action_executor_registry::register("READ_TXN",   h);
+        h = reset_action_executor         ::type_id::create("exec_reset");
+        action_executor_registry::register("RESET", h);
+        h = self_check_action_executor    ::type_id::create("exec_self");
+        action_executor_registry::register("SELF_CHECK", h);
+        h = error_inject_action_executor  ::type_id::create("exec_err");
+        action_executor_registry::register("ERROR_INJECTION", h);
+        h = traffic_action_executor       ::type_id::create("exec_traf");
+        action_executor_registry::register("TRAFFIC", h);
+        h = parallel_group_action_executor::type_id::create("exec_par");
+        action_executor_registry::register("PARALLEL_GROUP", h);
+        h = serial_group_action_executor  ::type_id::create("exec_ser");
+        action_executor_registry::register("SERIAL_GROUP", h);
+        h = send_wr_action_executor       ::type_id::create("exec_wr");
+        action_executor_registry::register("WRITE_TXN", h);
+        h = send_rd_action_executor       ::type_id::create("exec_rd");
+        action_executor_registry::register("READ_TXN", h);
+        h = apb_base_seq_action_executor  ::type_id::create("exec_base");
+        action_executor_registry::register("APB_BASE_SEQ", h);
+        h = apb_register_seq_action_executor::type_id::create("exec_reg");
+        action_executor_registry::register("APB_REGISTER_SEQ", h);
       end
     endfunction
 
@@ -56,9 +70,10 @@ package avry_yaml_seq_pkg;
 
       // Executors must be available before running the list
       register_executors_once();
-`uvm_info(get_type_name(),
-  $sformatf("cfg '%s' has %0d actions", cfg.scenario_name, cfg.action_list.size()),
-  UVM_LOW)
+      stimulus_action_executor_base::set_reg_block(reg_block);
+      `uvm_info(get_type_name(),
+        $sformatf("cfg '%s' has %0d actions", cfg.scenario_name, cfg.action_list.size()),
+        UVM_LOW)
 
       // Auto-build default if empty
       if (cfg.action_list.size() == 0) begin

@@ -39,6 +39,37 @@ package avry_yaml_types_pkg;
     endfunction
   endclass
 
+  // apb_base_seq action payload
+  class base_seq_action_data extends uvm_object;
+    rand int num_iters;
+    bit      use_override;
+
+    `uvm_object_utils_begin(base_seq_action_data)
+      `uvm_field_int(num_iters,    UVM_ALL_ON)
+      `uvm_field_int(use_override, UVM_ALL_ON)
+    `uvm_object_utils_end
+
+    function new(string name="base_seq_action_data");
+      super.new(name);
+      num_iters    = 1;
+      use_override = 0;
+    endfunction
+  endclass
+
+  // apb_register_seq action payload
+  class register_seq_action_data extends uvm_object;
+    rand int num_iters;
+
+    `uvm_object_utils_begin(register_seq_action_data)
+      `uvm_field_int(num_iters, UVM_ALL_ON)
+    `uvm_object_utils_end
+
+    function new(string name="register_seq_action_data");
+      super.new(name);
+      num_iters = 1;
+    endfunction
+  endclass
+
   // Group payload (used for PARALLEL_GROUP or SERIAL_GROUP)
   class parallel_group_t extends uvm_object;
     stimulus_action_t parallel_actions[$];

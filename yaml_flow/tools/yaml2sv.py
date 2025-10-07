@@ -78,6 +78,18 @@ def emit_actions(lst, prefix):
             stmts.append(
                 f"    {var_name} = stimulus_auto_builder::build_traffic({dirc}, {n}, {base}, 32'h{pat:08X});"
             )
+        elif at == "APB_BASE_SEQ":
+            n = int(data.get("num_iters", 1))
+            use_override = data.get("use_override", False)
+            ov = 1 if use_override else 0
+            stmts.append(
+                f"    {var_name} = stimulus_auto_builder::build_apb_base_seq({n}, {ov});"
+            )
+        elif at == "APB_REGISTER_SEQ":
+            n = int(data.get("num_iters", 1))
+            stmts.append(
+                f"    {var_name} = stimulus_auto_builder::build_apb_register_seq({n});"
+            )
         elif at == "PARALLEL_GROUP":
             subs = data.get("parallel_actions", [])
             subp = f"{var_name}_"
