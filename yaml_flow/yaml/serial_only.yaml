@@ -1,0 +1,34 @@
+{
+  "scenario_name": "serial_only",
+  "timeout_value": 12000,
+  "action_list": [
+    { "action_type": "RESET" },
+    {
+      "action_type": "SERIAL_GROUP",
+      "action_data": {
+        "serial_actions": [
+          {
+            "action_type": "TRAFFIC",
+            "action_data": {
+              "direction": "write",
+              "num_packets": 4,
+              "addr_base": 0,
+              "data_pattern": 42405
+            }
+          },
+          {
+            "action_type": "TRAFFIC",
+            "action_data": {
+              "direction": "read",
+              "num_packets": 4,
+              "addr_base": 8,
+              "data_pattern": 23130
+            }
+          },
+          { "action_type": "SELF_CHECK" }
+        ]
+      }
+    }
+  ]
+}
+
