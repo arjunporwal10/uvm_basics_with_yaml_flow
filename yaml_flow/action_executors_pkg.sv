@@ -76,6 +76,7 @@ package action_executors_pkg;
   // --------------------------------------------------------------------------
   class action_executor_registry;
     static exec_base_t m_map[string];
+    static int unsigned m_next_inst_id = 0;
 
     // Register a handle (constructed with proper new(string name))
     static function void register(string key, exec_base_t h);
@@ -94,6 +95,7 @@ package action_executors_pkg;
     static task dispatch(stimulus_action_t a,
                          uvm_sequence_base  parent_seq,
                          uvm_sequencer_base seqr);
+      exec_base_t proto;
       exec_base_t ex;
       if (a == null) begin
         `uvm_error("EXEC_DISP", "Null action")
@@ -103,7 +105,21 @@ package action_executors_pkg;
         `uvm_error("EXEC_DISP", $sformatf("No executor registered for action_type='%s'", a.action_type))
         return;
       end
-      ex = m_map[a.action_type];
+      proto = m_map[a.action_type];
+      if (proto == null) begin
+        `uvm_error("EXEC_DISP", $sformatf("Executor prototype for action_type='%s' is null", a.action_type))
+        return;
+      end
+
+      // Clone the prototype so that each dispatch gets an isolated
+      // executor instance.  This avoids shared state when multiple
+      // actions (e.g. from a PARALLEL_GROUP) execute concurrently.
+      ex = exec_base_t'(proto.clone());
+      if (ex == null) begin
+        `uvm_error("EXEC_DISP", $sformatf("Failed to clone executor for action_type='%s'", a.action_type))
+        return;
+      end
+      ex.set_name($sformatf("%s_exec_%0d", a.action_type, m_next_inst_id++));
       ex.m_parent_seq = parent_seq;
       ex.m_sequencer  = seqr;
       ex.execute(a);
