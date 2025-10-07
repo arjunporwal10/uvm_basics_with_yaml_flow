@@ -135,6 +135,7 @@ package action_executors_pkg;
     function new(string name="reset_action_executor"); super.new(name); endfunction
     virtual task execute(stimulus_action_t a);
       time delay_t;
+      `uvm_info(get_type_name(), "-> RESET", UVM_MEDIUM)
       `uvm_info(get_type_name(), "Executing RESET (placeholder)", UVM_LOW)
       delay_t = 10ns; // Replace with TB clocked reset if you wire in a vif
       #delay_t;
@@ -148,6 +149,7 @@ package action_executors_pkg;
     `uvm_object_utils(self_check_action_executor)
     function new(string name="self_check_action_executor"); super.new(name); endfunction
     virtual task execute(stimulus_action_t a);
+      `uvm_info(get_type_name(), "-> SELF_CHECK", UVM_MEDIUM)
       `uvm_info(get_type_name(), "Executing SELF_CHECK (placeholder)", UVM_LOW)
     endtask
   endclass
@@ -159,6 +161,7 @@ package action_executors_pkg;
     `uvm_object_utils(error_inject_action_executor)
     function new(string name="error_inject_action_executor"); super.new(name); endfunction
     virtual task execute(stimulus_action_t a);
+      `uvm_info(get_type_name(), "-> ERROR_INJECTION", UVM_MEDIUM)
       `uvm_info(get_type_name(), "Executing ERROR_INJECTION (placeholder)", UVM_LOW)
     endtask
   endclass
@@ -171,16 +174,16 @@ package action_executors_pkg;
     function new(string name="send_wr_action_executor"); super.new(name); endfunction
     virtual task execute(stimulus_action_t a);
       traffic_action_data d;
-    
+
       if (!$cast(d, a.action_data)) begin
         `uvm_error(get_type_name(), "Missing/invalid traffic_action_data")
         return;
       end
-    
+
       `uvm_info(get_type_name(),
-                $sformatf(" WRITE TXN"), UVM_MEDIUM)
-    
-      send_apb_write(d.addr_base , d.data_pattern ); 
+                $sformatf("-> WRITE TXN"), UVM_MEDIUM)
+
+      send_apb_write(d.addr_base , d.data_pattern );
     endtask
   endclass
   // --------------------------------------------------------------------------
@@ -197,10 +200,10 @@ package action_executors_pkg;
         `uvm_error(get_type_name(), "Missing/invalid traffic_action_data")
         return;
       end
-    
+
       `uvm_info(get_type_name(),
-                $sformatf(" READ TXN"), UVM_MEDIUM)
-    
+                $sformatf("-> READ TXN"), UVM_MEDIUM)
+
       send_apb_read(d.addr_base , r32);
     endtask
   endclass
@@ -220,7 +223,8 @@ package action_executors_pkg;
         `uvm_error(get_type_name(), "Missing/invalid traffic_action_data")
         return;
       end
-    
+
+      `uvm_info(get_type_name(), "-> TRAFFIC", UVM_MEDIUM)
       `uvm_info(get_type_name(),
                 $sformatf("TRAFFIC dir=%s count=%0d",
                           (d.direction==DIR_WRITE)?"WRITE":"READ", d.num_packets),
@@ -262,6 +266,7 @@ package action_executors_pkg;
         return;
       end
 
+      `uvm_info(get_type_name(), "-> APB_BASE_SEQ", UVM_MEDIUM)
       if (!$cast(d, a.action_data)) begin
         n = 1;
         do_override = 0;
@@ -309,6 +314,7 @@ package action_executors_pkg;
         return;
       end
 
+      `uvm_info(get_type_name(), "-> APB_REGISTER_SEQ", UVM_MEDIUM)
       blk = get_reg_block();
 
       if (blk == null) begin
@@ -345,6 +351,7 @@ package action_executors_pkg;
         `uvm_error(get_type_name(), "Missing/invalid parallel_group_t")
         return;
       end
+      `uvm_info(get_type_name(), "-> PARALLEL_GROUP", UVM_MEDIUM)
       `uvm_info(get_type_name(),
                 $sformatf("Executing PARALLEL_GROUP (%0d actions)", grp.parallel_actions.size()),
                 UVM_LOW)
@@ -379,6 +386,7 @@ package action_executors_pkg;
         return;
       end
 
+      `uvm_info(get_type_name(), "-> SERIAL_GROUP", UVM_MEDIUM)
       `uvm_info(get_type_name(),
                 $sformatf("Executing SERIAL_GROUP (%0d actions)", grp.parallel_actions.size()),
                 UVM_LOW)
