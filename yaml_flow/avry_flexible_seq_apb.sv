@@ -31,6 +31,8 @@ package avry_yaml_seq_pkg;
         h = traffic_action_executor       ::type_id::create("exec_traf");  action_executor_registry::register("TRAFFIC",        h);
         h = parallel_group_action_executor::type_id::create("exec_par");   action_executor_registry::register("PARALLEL_GROUP", h);
         h = serial_group_action_executor  ::type_id::create("exec_ser");   action_executor_registry::register("SERIAL_GROUP",   h);
+        h = send_wr_action_executor       ::type_id::create("exec_wr");   action_executor_registry::register("WRITE_TXN",   h);
+        h = send_rd_action_executor       ::type_id::create("exec_rd");   action_executor_registry::register("READ_TXN",   h);
       end
     endfunction
 
@@ -54,6 +56,9 @@ package avry_yaml_seq_pkg;
 
       // Executors must be available before running the list
       register_executors_once();
+`uvm_info(get_type_name(),
+  $sformatf("cfg '%s' has %0d actions", cfg.scenario_name, cfg.action_list.size()),
+  UVM_LOW)
 
       // Auto-build default if empty
       if (cfg.action_list.size() == 0) begin

@@ -52,7 +52,7 @@ package avry_yaml_tests_pkg;
 
       // Make the scenario visible to the flexible sequence
       // (use a broad path so the seq can find it)
-      uvm_config_db#(avry_scenario_cfg)::set(null, "*", "scenario_cfg", scen_cfg);
+      //uvm_config_db#(avry_scenario_cfg)::set(null, "*", "scenario_cfg", scen_cfg);
 
       // Create seq
       seq = avry_flexible_seq_apb::type_id::create("seq");

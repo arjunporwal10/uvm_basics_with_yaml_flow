@@ -41,10 +41,28 @@ package stimulus_auto_builder_pkg;
       stimulus_action_t a; a=new(); a.action_type="SELF_CHECK"; return a;
     endfunction
 
+    static function stimulus_action_t build_error_injection();
+      stimulus_action_t a; a=new(); a.action_type="ERROR_INJECTION"; return a;
+    endfunction
+
     static function stimulus_action_t build_traffic(dir_e dir, integer n, int unsigned base=32'h0, bit[31:0] pat=32'h0);
       stimulus_action_t a; traffic_action_data d;
       a=new(); a.action_type="TRAFFIC";
       d=new(); d.direction=dir; d.num_packets=n; d.addr_base=base; d.data_pattern=pat;
+      a.action_data=d; return a;
+    endfunction
+
+    static function stimulus_action_t build_write_tr(int unsigned base=32'h0, bit[31:0] pat=32'h0);
+      stimulus_action_t a; traffic_action_data d;
+      a=new(); a.action_type="WRITE_TXN";
+      d=new(); d.addr_base=base; d.data_pattern=pat;
+      a.action_data=d; return a;
+    endfunction
+
+    static function stimulus_action_t build_read_tr(int unsigned base=32'h0 );
+      stimulus_action_t a; traffic_action_data d;
+      a=new(); a.action_type="READ_TXN";
+      d=new(); d.addr_base=base; 
       a.action_data=d; return a;
     endfunction
 

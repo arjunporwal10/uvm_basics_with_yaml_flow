@@ -97,6 +97,22 @@ package action_executors_pkg;
     endtask
   endclass
 
+  // Proxy sequence to execute one stimulus_action_t on a sequencer
+  class exec_proxy_seq extends uvm_sequence #(apb_seq_item);
+    `uvm_object_utils(exec_proxy_seq)
+    stimulus_action_t m_sub;
+  
+    function new(string name="exec_proxy_seq");
+      super.new(name);
+    endfunction
+  
+    virtual task body();
+      // Dispatch using this sequence as the parent, so the sequencer
+      // can arbitrate between multiple exec_proxy_seq in parallel.
+      action_executor_registry::dispatch(m_sub, this, m_sequencer);
+    endtask
+  endclass
+
   // --------------------------------------------------------------------------
   // RESET (placeholder)
   // --------------------------------------------------------------------------
@@ -134,6 +150,48 @@ package action_executors_pkg;
   endclass
 
   // --------------------------------------------------------------------------
+  // WRITE_TXN – portable APB driver via parent sequence
+  // --------------------------------------------------------------------------
+  class send_wr_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(send_wr_action_executor)
+    function new(string name="send_wr_action_executor"); super.new(name); endfunction
+    virtual task execute(stimulus_action_t a);
+      traffic_action_data d;
+    
+      if (!$cast(d, a.action_data)) begin
+        `uvm_error(get_type_name(), "Missing/invalid traffic_action_data")
+        return;
+      end
+    
+      `uvm_info(get_type_name(),
+                $sformatf(" WRITE TXN"), UVM_MEDIUM)
+    
+      send_apb_write(d.addr_base , d.data_pattern ); 
+    endtask
+  endclass
+  // --------------------------------------------------------------------------
+  // READ_TXN – portable APB driver via parent sequence
+  // --------------------------------------------------------------------------
+  class send_rd_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(send_rd_action_executor)
+    function new(string name="send_rd_action_executor"); super.new(name); endfunction
+    virtual task execute(stimulus_action_t a);
+      traffic_action_data d;
+      bit [31:0] r32;
+    
+      if (!$cast(d, a.action_data)) begin
+        `uvm_error(get_type_name(), "Missing/invalid traffic_action_data")
+        return;
+      end
+    
+      `uvm_info(get_type_name(),
+                $sformatf(" READ TXN"), UVM_MEDIUM)
+    
+      send_apb_read(d.addr_base , r32);
+    endtask
+  endclass
+
+  // --------------------------------------------------------------------------
   // TRAFFIC – portable APB driver via parent sequence
   // --------------------------------------------------------------------------
   class traffic_action_executor extends stimulus_action_executor_base;
@@ -156,11 +214,11 @@ package action_executors_pkg;
     
       if (d.direction == DIR_WRITE) begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_write(32'h0000_0000 + i*2, 32'hA5A5_A5A5 + i); // masked in helper
+          send_apb_write(d.addr_base + i*2, d.data_pattern + i); // masked in helper
         end
       end else begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_read(32'h0000_0000 + i*2, r32);
+          send_apb_read(d.addr_base + i*2, r32);
         end
       end
     endtask
@@ -173,27 +231,32 @@ package action_executors_pkg;
   class parallel_group_action_executor extends stimulus_action_executor_base;
     `uvm_object_utils(parallel_group_action_executor)
     function new(string name="parallel_group_action_executor"); super.new(name); endfunction
+  
     virtual task execute(stimulus_action_t a);
       parallel_group_t grp;
       int j;
-
-      if (!$cast(grp, a.action_data) || (grp==null)) begin
+      exec_proxy_seq proxy;
+  
+      if (!$cast(grp, a.action_data)) begin
         `uvm_error(get_type_name(), "Missing/invalid parallel_group_t")
         return;
       end
-
       `uvm_info(get_type_name(),
                 $sformatf("Executing PARALLEL_GROUP (%0d actions)", grp.parallel_actions.size()),
                 UVM_LOW)
-
-      fork
-        for (j=0; j<grp.parallel_actions.size(); j++) begin : PAR_DO
+  
+      // Launch each sub-action as its own child sequence on the same sequencer.
+      // The UVM sequencer will arbitrate among these proxies, allowing interleaving.
+      fork : PAR_GROUP
+        for (j = 0; j < grp.parallel_actions.size(); j++) begin : EACH
           automatic stimulus_action_t sub = grp.parallel_actions[j];
-          fork
-            action_executor_registry::dispatch(sub, m_parent_seq, m_sequencer);
-          join_none
+          begin
+            proxy = exec_proxy_seq::type_id::create($sformatf("proxy_%0d", j));
+            proxy.m_sub = sub;
+            proxy.start(m_sequencer); // start on the same APB sequencer
+          end
         end
-      join
+      join  // wait for all proxies to finish before returning
     endtask
   endclass
 

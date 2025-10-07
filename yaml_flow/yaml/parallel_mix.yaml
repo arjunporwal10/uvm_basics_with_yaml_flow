@@ -28,6 +28,9 @@
       }
     },
     {
+      "action_type": "ERROR_INJECTION"
+    },
+    {
       "action_type": "SELF_CHECK"
     }
   ]

@@ -56,6 +56,19 @@ def emit_actions(lst, prefix):
             stmts.append(f"    {var_name} = stimulus_auto_builder::build_reset();")
         elif at == "SELF_CHECK":
             stmts.append(f"    {var_name} = stimulus_auto_builder::build_self_check();")
+        elif at == "ERROR_INJECTION":
+            stmts.append(f"    {var_name} = stimulus_auto_builder::build_error_injection();")
+        elif at == "WRITE_TXN":
+            base = int(data.get("addr_base", 0))
+            pat = int(data.get("data_pattern", 0))
+            stmts.append(
+                f"    {var_name} = stimulus_auto_builder::build_write_tr({base}, 32'h{pat:08X});"
+            )
+        elif at == "READ_TXN":
+            base = int(data.get("addr_base", 0))
+            stmts.append(
+                f"    {var_name} = stimulus_auto_builder::build_read_tr({base});"
+            )
         elif at == "TRAFFIC":
             n = int(data.get("num_packets", 8))
             base = int(data.get("addr_base", 0))
