@@ -389,7 +389,5 @@ package action_executors_pkg;
     endtask
   endclass
 
-  apb_reg_block stimulus_action_executor_base::m_reg_block = null;
-
 endpackage
 
