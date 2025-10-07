@@ -22,6 +22,11 @@ ROOT := $(CURDIR)
 export ROOT := $(CURDIR)
 WORK_DIR := $(ROOT)/WORK_DIR
 
+# Build a log filename for each test/scenario combination
+SIM_NAME := $(if $(TEST),$(TEST),sim)
+SIM_NAME := $(SIM_NAME)$(if $(strip $(SCEN)),_$(SCEN),)
+SIM_LOG  := $(WORK_DIR)/$(SIM_NAME).log
+
 # --- ADD: incdir for yaml_flow so headers/types are found ---
 compile_opts  :=
 compile_opts  += +incdir+$(ROOT)/yaml_flow
@@ -79,7 +84,7 @@ run_vcs: yaml   # <-- ensure YAML is generated before compiling
 	mkdir -p $(WORK_DIR) && \
 	cd $(WORK_DIR) && \
 	vcs $(UVM_OPTS) $(vcs_compile_opts) $(compile_files) && \
-	./simv $(vcs_run_opts)
+	(set -o pipefail; ./simv $(vcs_run_opts) 2>&1 | tee $(SIM_LOG))
 
 clean_vcs:
 	rm -rf $(WORK_DIR)/*
