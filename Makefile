@@ -7,13 +7,14 @@ YAML_FLOW = yaml_flow/avry_yaml_types_pkg.sv \
             yaml_flow/avry_yaml_tests_pkg.sv
 
 help:
-	@echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
-	@echo "  SIMULATOR can be 'vcs'."
-	@echo "Example: make vcs TEST=apb_read_write_test"
-	@echo "  Runs a simulation for apb_read_write_test using VCS."
-	@echo "YAML Flow:"
-	@echo "  make vcs TEST=yaml_test SCEN=reset_traffic"
-	@echo "  (yaml_test comes from yaml_flow/avry_yaml_tests_pkg.sv)"
+        @echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
+        @echo "  SIMULATOR can be 'vcs'."
+        @echo "Example: make vcs TEST=apb_read_write_test"
+        @echo "  Runs a simulation for apb_read_write_test using VCS."
+        @echo "YAML Flow:"
+        @echo "  make vcs TEST=yaml_test SCEN=reset_traffic"
+        @echo "  (yaml_test comes from yaml_flow/avry_yaml_tests_pkg.sv)"
+        @echo "Quick rerun without rebuilding: make sim TEST=... [SCEN=...]"
 
 # conditionals
 #-------------------------------------------------------------------------------
@@ -26,6 +27,7 @@ WORK_DIR := $(ROOT)/WORK_DIR
 SIM_NAME := $(if $(TEST),$(TEST),sim)
 SIM_NAME := $(SIM_NAME)$(if $(strip $(SCEN)),_$(SCEN),)
 SIM_LOG  := $(WORK_DIR)/$(SIM_NAME).log
+SIMV_BIN  := $(WORK_DIR)/simv
 
 # --- ADD: incdir for yaml_flow so headers/types are found ---
 compile_opts  :=
@@ -60,6 +62,8 @@ endif
 vcs_compile_opts := $(compile_opts) -timescale=1ns/10ps -ntb_opts uvm -sverilog
 vcs_run_opts     := $(run_opts)
 
+.PHONY: help
+
 # -------------------------------
 # YAML autogen (NEW)
 # -------------------------------
@@ -81,10 +85,20 @@ vcs: run_vcs
 prep_vcs:
 
 run_vcs: yaml   # <-- ensure YAML is generated before compiling
-	mkdir -p $(WORK_DIR) && \
-	cd $(WORK_DIR) && \
-	vcs $(UVM_OPTS) $(vcs_compile_opts) $(compile_files) && \
-	(set -o pipefail; ./simv $(vcs_run_opts) 2>&1 | tee $(SIM_LOG))
+        mkdir -p $(WORK_DIR) && \
+        cd $(WORK_DIR) && \
+        vcs $(UVM_OPTS) $(vcs_compile_opts) $(compile_files) && \
+        (set -o pipefail; ./simv $(vcs_run_opts) 2>&1 | tee $(SIM_LOG))
+
+.PHONY: sim
+sim: yaml
+        @if [ ! -x $(SIMV_BIN) ]; then \
+                echo "Error: $(SIMV_BIN) not found. Run 'make vcs' to build simv first."; \
+                exit 1; \
+        fi
+        mkdir -p $(WORK_DIR)
+        cd $(WORK_DIR) && \
+        (set -o pipefail; ./simv $(vcs_run_opts) 2>&1 | tee $(SIM_LOG))
 
 clean_vcs:
 	rm -rf $(WORK_DIR)/*
