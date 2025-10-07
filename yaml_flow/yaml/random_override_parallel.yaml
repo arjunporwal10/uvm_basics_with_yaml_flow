@@ -9,7 +9,7 @@
           {
             "action_type": "APB_BASE_SEQ",
             "action_data": {
-              "num_iters": 20,
+              "num_iters": 1,
               "use_override": true
             }
           },
@@ -17,6 +17,13 @@
             "action_type": "APB_REGISTER_SEQ",
             "action_data": {
               "num_iters": 1
+            }
+          },
+          {
+            "action_type": "WRITE_TXN",
+            "action_data": {
+              "addr_base": 8,
+              "data_pattern": 2779077210
             }
           }
         ]

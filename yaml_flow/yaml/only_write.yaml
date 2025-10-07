@@ -1,0 +1,20 @@
+{
+  "scenario_name": "only_write",
+  "timeout_value": 10000,
+  "action_list": [
+    {
+      "action_type": "RESET"
+    },
+    {
+      "action_type": "WRITE_TXN",
+      "action_data": {
+        "addr_base": 8,
+        "data_pattern": 2779077210
+      }
+    },
+    {
+      "action_type": "SELF_CHECK"
+    }
+  ]
+}
+

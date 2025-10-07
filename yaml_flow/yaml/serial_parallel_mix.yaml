@@ -1,0 +1,80 @@
+{
+  "scenario_name": "serial_parallel_mix",
+  "timeout_value": 15000,
+  "action_list": [
+    { "action_type": "RESET" },
+
+    {
+      "action_type": "PARALLEL_GROUP",
+      "action_data": {
+        "parallel_actions": [
+          {
+            "action_type": "TRAFFIC",
+            "action_data": {
+              "direction": "read",
+              "num_packets": 8,
+              "addr_base": 16,
+              "data_pattern": 4369
+            }
+          },
+          {
+            "action_type": "TRAFFIC",
+            "action_data": {
+              "direction": "write",
+              "num_packets": 8,
+              "addr_base": 64,
+              "data_pattern": 8738
+            }
+          }
+        ]
+      }
+    },
+
+    { "action_type": "SELF_CHECK" },
+
+    {
+      "action_type": "SERIAL_GROUP",
+      "action_data": {
+        "serial_actions": [
+          {
+            "action_type": "TRAFFIC",
+            "action_data": {
+              "direction": "write",
+              "num_packets": 2,
+              "addr_base": 0,
+              "data_pattern": 42405
+            }
+          },
+          {
+            "action_type": "PARALLEL_GROUP",
+            "action_data": {
+              "parallel_actions": [
+                {
+                  "action_type": "TRAFFIC",
+                  "action_data": {
+                    "direction": "read",
+                    "num_packets": 2,
+                    "addr_base": 2,
+                    "data_pattern": 23130
+                  }
+                },
+                {
+                  "action_type": "TRAFFIC",
+                  "action_data": {
+                    "direction": "write",
+                    "num_packets": 2,
+                    "addr_base": 4,
+                    "data_pattern": 61455
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+
+    { "action_type": "SELF_CHECK" }
+  ]
+}
+

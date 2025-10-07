@@ -1,0 +1,19 @@
+{
+  "scenario_name": "only_read",
+  "timeout_value": 10000,
+  "action_list": [
+    {
+      "action_type": "RESET"
+    },
+    {
+      "action_type": "READ_TXN",
+      "action_data": {
+        "addr_base": 0
+      }
+    },
+    {
+      "action_type": "SELF_CHECK"
+    }
+  ]
+}
+
