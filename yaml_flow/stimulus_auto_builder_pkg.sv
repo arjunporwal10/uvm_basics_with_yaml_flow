@@ -1,6 +1,6 @@
 package stimulus_auto_builder_pkg;
   import uvm_pkg::*;                  `include "uvm_macros.svh"
-  import avry_yaml_types_pkg::*;
+  import yaml_types_pkg::*;
 
   // ----------------------------------------------------------------------------
   // Stimulus auto-builder
@@ -10,7 +10,7 @@ package stimulus_auto_builder_pkg;
   class stimulus_auto_builder;
 
     // Build a default list if cfg.action_list is empty
-    static function void build(avry_scenario_cfg cfg, ref stimulus_action_t action_q[$]);
+    static function void build(yaml_scenario_cfg cfg, ref stimulus_action_t action_q[$]);
       integer               n;
       stimulus_action_t     tmp_a;      // scratch when needed (not used below)
       bit                   use_default;
@@ -66,24 +66,24 @@ package stimulus_auto_builder_pkg;
       a.action_data=d; return a;
     endfunction
 
-    static function stimulus_action_t build_apb_base_seq(int iterations=1, bit use_override=0);
+    static function stimulus_action_t build_vip_base_seq(int iterations=1, bit use_override=0);
       stimulus_action_t    a; base_seq_action_data d;
       int                  iters;
 
       iters = (iterations <= 0) ? 1 : iterations;
 
-      a=new(); a.action_type="APB_BASE_SEQ";
+      a=new(); a.action_type="VIP_BASE_SEQ";
       d=new(); d.num_iters=iters; d.use_override=use_override;
       a.action_data=d; return a;
     endfunction
 
-    static function stimulus_action_t build_apb_register_seq(int iterations=1);
+    static function stimulus_action_t build_vip_register_seq(int iterations=1);
       stimulus_action_t       a; register_seq_action_data d;
       int                     iters;
 
       iters = (iterations <= 0) ? 1 : iterations;
 
-      a=new(); a.action_type="APB_REGISTER_SEQ";
+      a=new(); a.action_type="VIP_REGISTER_SEQ";
       d=new(); d.num_iters=iters;
       a.action_data=d; return a;
     endfunction

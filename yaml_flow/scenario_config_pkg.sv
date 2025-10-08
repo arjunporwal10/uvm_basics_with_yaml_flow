@@ -1,9 +1,9 @@
 // Auto-generated scenario_config_pkg.sv
 package scenario_config_pkg;
-  import avry_yaml_types_pkg::*;
+  import yaml_types_pkg::*;
   import stimulus_auto_builder_pkg::*;
-  function automatic avry_scenario_cfg get_scenario_by_name(string name);
-    avry_scenario_cfg cfg = avry_scenario_cfg::type_id::create(name);
+  function automatic yaml_scenario_cfg get_scenario_by_name(string name);
+    yaml_scenario_cfg cfg = yaml_scenario_cfg::type_id::create(name);
     stimulus_action_t a_0, a_0_0, a_0_1, a_0_2, a_1, a_1_0;
     stimulus_action_t a_1_1, a_1_2, a_2, a_3, a_3_0, a_3_1;
     stimulus_action_t a_3_1_0, a_3_1_1, a_4;
@@ -47,8 +47,8 @@ package scenario_config_pkg;
     cfg.scenario_name = "random_override_parallel";
     cfg.timeout_value = 15000;
     cfg.action_list.delete();
-    a_0_0 = stimulus_auto_builder::build_apb_base_seq(1, 1);
-    a_0_1 = stimulus_auto_builder::build_apb_register_seq(1);
+    a_0_0 = stimulus_auto_builder::build_vip_base_seq(1, 1);
+    a_0_1 = stimulus_auto_builder::build_vip_register_seq(1);
     a_0_2 = stimulus_auto_builder::build_write_tr(8, 32'hA5A55A5A);
     a_0 = stimulus_auto_builder::build_parallel('{a_0_0, a_0_1, a_0_2});
     a_1 = stimulus_auto_builder::build_self_check();

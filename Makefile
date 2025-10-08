@@ -1,10 +1,11 @@
 # Added YAML flow support
-YAML_FLOW = yaml_flow/avry_yaml_types_pkg.sv \
+YAML_FLOW = yaml_flow/yaml_flow_types_pkg.sv \
             yaml_flow/stimulus_auto_builder_pkg.sv \
             yaml_flow/action_executors_pkg.sv \
+            yaml_flow/vip_plugins_pkg.sv \
             yaml_flow/scenario_config_pkg.sv \
-            yaml_flow/avry_flexible_seq_apb.sv \
-            yaml_flow/avry_yaml_tests_pkg.sv
+            yaml_flow/yaml_flexible_seq_pkg.sv \
+            yaml_flow/yaml_tests_pkg.sv
 
 help:
 	@echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
@@ -13,7 +14,7 @@ help:
 	@echo "  Runs a simulation for apb_read_write_test using VCS."
 	@echo "YAML Flow:"
 	@echo "  make vcs TEST=yaml_test SCEN=reset_traffic"
-	@echo "  (yaml_test comes from yaml_flow/avry_yaml_tests_pkg.sv)"
+        @echo "  (yaml_test comes from yaml_flow/yaml_tests_pkg.sv)"
 	@echo "Quick rerun without rebuilding: make sim TEST=... [SCEN=...]"
 
 # conditionals
@@ -35,7 +36,10 @@ compile_opts  += +incdir+$(ROOT)/yaml_flow
 
 compile_files := -f $(ROOT)/regs/src/filelist.f
 compile_files += -f $(ROOT)/agents/apb/src/filelist.f
+compile_files += -f $(ROOT)/agents/example_bus/src/filelist.f
 compile_files += -f $(ROOT)/sequence_lib/src/filelist.f
+compile_files += -f $(ROOT)/agents/apb/sequence_lib/src/filelist.f
+compile_files += -f $(ROOT)/agents/example_bus/sequence_lib/src/filelist.f
 compile_files += -f $(ROOT)/env/src/filelist.f
 compile_files += -f $(ROOT)/tb/src/filelist.f
 compile_files += -f $(ROOT)/src/filelist.f

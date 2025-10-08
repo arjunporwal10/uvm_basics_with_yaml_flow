@@ -11,10 +11,10 @@ def sv_header():
     return (
         "// Auto-generated scenario_config_pkg.sv\n"
         "package scenario_config_pkg;\n"
-        "  import avry_yaml_types_pkg::*;\n"
+        "  import yaml_types_pkg::*;\n"
         "  import stimulus_auto_builder_pkg::*;\n"
-        "  function automatic avry_scenario_cfg get_scenario_by_name(string name);\n"
-        "    avry_scenario_cfg cfg = avry_scenario_cfg::type_id::create(name);\n"
+        "  function automatic yaml_scenario_cfg get_scenario_by_name(string name);\n"
+        "    yaml_scenario_cfg cfg = yaml_scenario_cfg::type_id::create(name);\n"
     )
 
 def sv_after_decls():
@@ -78,17 +78,17 @@ def emit_actions(lst, prefix):
             stmts.append(
                 f"    {var_name} = stimulus_auto_builder::build_traffic({dirc}, {n}, {base}, 32'h{pat:08X});"
             )
-        elif at == "APB_BASE_SEQ":
+        elif at == "VIP_BASE_SEQ":
             n = int(data.get("num_iters", 1))
             use_override = data.get("use_override", False)
             ov = 1 if use_override else 0
             stmts.append(
-                f"    {var_name} = stimulus_auto_builder::build_apb_base_seq({n}, {ov});"
+                f"    {var_name} = stimulus_auto_builder::build_vip_base_seq({n}, {ov});"
             )
-        elif at == "APB_REGISTER_SEQ":
+        elif at == "VIP_REGISTER_SEQ":
             n = int(data.get("num_iters", 1))
             stmts.append(
-                f"    {var_name} = stimulus_auto_builder::build_apb_register_seq({n});"
+                f"    {var_name} = stimulus_auto_builder::build_vip_register_seq({n});"
             )
         elif at == "PARALLEL_GROUP":
             subs = data.get("parallel_actions", [])

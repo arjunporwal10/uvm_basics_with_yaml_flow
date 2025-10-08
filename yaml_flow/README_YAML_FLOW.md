@@ -2,11 +2,12 @@
 # YAML Flow Integration (PoC)
 
 Files are under `yaml_flow/`:
-- `avry_yaml_types_pkg.sv`: action types and scenario cfg
-- `action_executors_pkg.sv`: executors for RESET/TRAFFIC/PARALLEL/SERIAL/SELF_CHECK plus APB base/register sequences
+- `yaml_flow_types_pkg.sv`: action types and scenario cfg
+- `action_executors_pkg.sv`: executors for RESET/TRAFFIC/PARALLEL/SERIAL/SELF_CHECK and generic VIP hooks
+- `vip_plugins_pkg.sv`: reusable adapters that translate YAML actions to VIP-specific sequences
 - `stimulus_auto_builder_pkg.sv`: helpers to build actions programmatically
-- `avry_flexible_seq_apb.sv`: flexible sequence that interprets action list
-- `avry_yaml_tests_pkg.sv`: `yaml_test` to run flow on APB sequencer
+- `yaml_flexible_seq_pkg.sv`: generic flexible sequence that interprets the action list
+- `yaml_tests_pkg.sv`: `yaml_test` to run flow on the APB bench
 - `tools/yaml2sv.py`: tiny YAML/JSON converter (no external deps)
 - `yaml/*.yaml`: example scenarios
 
@@ -18,7 +19,11 @@ Files are under `yaml_flow/`:
 2. Build & run:
    ```
    make
-   ./simv +UVM_TESTNAME=yaml_test +SCENARIO=reset_traffic
-   ./simv +UVM_TESTNAME=yaml_test +SCENARIO=parallel_mix
-   ./simv +UVM_TESTNAME=yaml_test +SCENARIO=random_override_parallel
+  ./simv +UVM_TESTNAME=yaml_test +SCENARIO=reset_traffic
+  ./simv +UVM_TESTNAME=example_bus_yaml_test +SCENARIO=reset_traffic +VIP_VENDOR=example
   ```
+
+Both invocations consume the same YAML scenarios; the selected VIP is determined by
+the context passed to the flexible sequence (plusargs `+VIP_SLOT=` / `+VIP_VENDOR=` or
+config_db).  The `vip_plugins_pkg` package holds reusable adapters so a project can
+plug in its own VIP-specific sequence packages without touching the YAML flow code.
