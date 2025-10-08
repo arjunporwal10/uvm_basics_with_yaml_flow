@@ -1,4 +1,4 @@
-package avry_yaml_tests_pkg;
+package yaml_tests_pkg;
   import uvm_pkg::*;                  `include "uvm_macros.svh"
 
   // Make sure apb_base_test is visible (in adibis repo it's in test_pkg)
@@ -8,16 +8,17 @@ package avry_yaml_tests_pkg;
   import apb_regs_pkg::*;             // register model handle
 
   // YAML flow pieces
-  import avry_yaml_types_pkg::*;      // avry_scenario_cfg, action types
+  import yaml_types_pkg::*;           // yaml_scenario_cfg, action types
   import scenario_config_pkg::*;      // get_scenario_by_name()
-  import avry_yaml_seq_pkg::*;        // avry_flexible_seq_apb
+  import yaml_seq_pkg::*;             // yaml_flexible_seq
+  import vip_plugins_pkg::*;
 
   //----------------------------------------------------------------------------
   // Virtual sequence that:
   //  - reads +SCENARIO (or defaults)
-  //  - builds avry_scenario_cfg from scenario_config_pkg
+  //  - builds yaml_scenario_cfg from scenario_config_pkg
   //  - pushes cfg to config_db for the flexible seq
-  //  - starts avry_flexible_seq_apb on APB sequencer
+  //  - starts yaml_flexible_seq on APB sequencer
   //----------------------------------------------------------------------------
   class yaml_vseq extends uvm_sequence #(uvm_sequence_item);
     `uvm_object_utils(yaml_vseq)
@@ -27,9 +28,10 @@ package avry_yaml_tests_pkg;
     apb_reg_block      reg_block;
 
     // Locals (declare up-front: VCS-friendly)
-    avry_flexible_seq_apb seq;
+    yaml_flexible_seq     seq;
     string                scen_name;
-    avry_scenario_cfg     scen_cfg;
+    yaml_scenario_cfg     scen_cfg;
+    yaml_vip_context      vip_ctx;
 
     function new(string name="yaml_vseq");
       super.new(name);
@@ -54,11 +56,10 @@ package avry_yaml_tests_pkg;
 
       // Make the scenario visible to the flexible sequence
       // (use a broad path so the seq can find it)
-      //uvm_config_db#(avry_scenario_cfg)::set(null, "*", "scenario_cfg", scen_cfg);
+      //uvm_config_db#(yaml_scenario_cfg)::set(null, "*", "scenario_cfg", scen_cfg);
 
       // Create seq
-      seq = avry_flexible_seq_apb::type_id::create("seq");
-      seq.reg_block = reg_block;
+      seq = yaml_flexible_seq::type_id::create("seq");
 
       // Prefer the bench’s APB sequencer from env
       apb_sqr = m_env.m_apb_agent.m_apb_seqr;
@@ -72,6 +73,14 @@ package avry_yaml_tests_pkg;
       end
 
       // Start the flexible sequence
+      vip_ctx = yaml_vip_context::type_id::create("yaml_vip_ctx");
+      vip_ctx.slot_id     = "vip0";
+      vip_ctx.vendor_name = "apb";
+      vip_ctx.sequencer = apb_sqr;
+      vip_ctx.reg_block = reg_block;
+      uvm_config_db#(yaml_vip_context)::set(null, "*", "vip_context", vip_ctx);
+      uvm_config_db#(yaml_vip_context)::set(null, "*", "vip_context_vip0", vip_ctx);
+
       seq.start(apb_sqr);
     endtask
   endclass

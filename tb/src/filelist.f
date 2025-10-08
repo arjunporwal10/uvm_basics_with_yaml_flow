@@ -1,4 +1,5 @@
 +incdir+$ROOT/agents/apb/src/
++incdir+$ROOT/agents/example_bus/src/
 +incdir+$ROOT/env/src/
 +incdir+$ROOT/src/
 +incdir+$ROOT/tb/src/

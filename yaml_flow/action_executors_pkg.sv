@@ -1,11 +1,8 @@
 // yaml_flow/action_executors_pkg.sv
 package action_executors_pkg;
   import uvm_pkg::*;                 `include "uvm_macros.svh"
-  import apb_pkg::*;                  // apb_seq_item / apb_sequencer
-  import apb_regs_pkg::*;             // apb_reg_block
-  import chip_seq_lib_pkg::*;         // apb_register_seq
-  import apb_test_pkg::*;             // apb_override_tr
-  import avry_yaml_types_pkg::*;      // stimulus_action_t, traffic_action_data, parallel_group_t, DIR_*, etc.
+  import yaml_types_pkg::*;          // stimulus_action_t, traffic_action_data, parallel_group_t, DIR_*, etc.
+  import vip_plugins_pkg::*;
 
   // --------------------------------------------------------------------------
   // Base Executor: stores parent sequence & sequencer; provides helpers
@@ -17,7 +14,7 @@ package action_executors_pkg;
     uvm_sequence_base  m_parent_seq;
     uvm_sequencer_base m_sequencer;
 
-    static apb_reg_block m_reg_block;
+    static yaml_vip_adapter m_adapter;
 
     function new(string name="stimulus_action_executor_base");
       super.new(name);
@@ -27,43 +24,32 @@ package action_executors_pkg;
       `uvm_fatal(get_type_name(),"execute() not implemented")
     endtask
 
-    protected task send_apb_write(bit [31:0] addr, bit [31:0] data);
-      apb_seq_item req;
+    protected task send_bus_write(bit [31:0] addr, bit [31:0] data);
       if ((m_parent_seq==null) || (m_sequencer==null)) begin
         `uvm_fatal(get_type_name(),"No parent sequence or sequencer bound")
       end
-      req = apb_seq_item::type_id::create("req");
-      m_parent_seq.start_item(req);
-      req.tr_rw    = apb_seq_item::TR_WRITE;
-      req.tr_addr  = addr[15:0];
-      req.tr_wdata = data[15:0];
-      req.tr_error = 0;
-      m_parent_seq.finish_item(req);
-    endtask
-    
-    protected task send_apb_read(bit [31:0] addr, output bit [31:0] data);
-      apb_seq_item req;
-      bit [15:0]   r16;
-      if ((m_parent_seq==null) || (m_sequencer==null)) begin
-        `uvm_fatal(get_type_name(),"No parent sequence or sequencer bound")
+      if (m_adapter == null) begin
+        `uvm_fatal(get_type_name(),"No VIP adapter configured for bus write")
       end
-      req = apb_seq_item::type_id::create("req");
-      m_parent_seq.start_item(req);
-      req.tr_rw    = apb_seq_item::TR_READ;
-      req.tr_addr  = addr[15:0];
-      req.tr_error = 0;
-      m_parent_seq.finish_item(req);
-      // If driver fills tr_rdata, collect it:
-      r16  = req.tr_rdata;
-      data = {16'h0000, r16};
+      m_adapter.send_write(m_parent_seq, m_sequencer, addr, data);
     endtask
 
-    static function void set_reg_block(apb_reg_block blk);
-      m_reg_block = blk;
+    protected task send_bus_read(bit [31:0] addr, output bit [31:0] data);
+      if ((m_parent_seq==null) || (m_sequencer==null)) begin
+        `uvm_fatal(get_type_name(),"No parent sequence or sequencer bound")
+      end
+      if (m_adapter == null) begin
+        `uvm_fatal(get_type_name(),"No VIP adapter configured for bus read")
+      end
+      m_adapter.send_read(m_parent_seq, m_sequencer, addr, data);
+    endtask
+
+    static function void set_adapter(yaml_vip_adapter adapter);
+      m_adapter = adapter;
     endfunction
 
-    static function apb_reg_block get_reg_block();
-      return m_reg_block;
+    static function yaml_vip_adapter get_adapter();
+      return m_adapter;
     endfunction
 
   endclass
@@ -128,7 +114,7 @@ package action_executors_pkg;
   endclass
 
   // Proxy sequence to execute one stimulus_action_t on a sequencer
-  class exec_proxy_seq extends uvm_sequence #(apb_seq_item);
+  class exec_proxy_seq extends uvm_sequence #(uvm_sequence_item);
     `uvm_object_utils(exec_proxy_seq)
     stimulus_action_t m_sub;
   
@@ -183,7 +169,7 @@ package action_executors_pkg;
   endclass
 
   // --------------------------------------------------------------------------
-  // WRITE_TXN – portable APB driver via parent sequence
+  // WRITE_TXN – portable bus driver via parent sequence
   // --------------------------------------------------------------------------
   class send_wr_action_executor extends stimulus_action_executor_base;
     `uvm_object_utils(send_wr_action_executor)
@@ -199,11 +185,11 @@ package action_executors_pkg;
       `uvm_info(get_type_name(),
                 $sformatf("-> WRITE TXN"), UVM_MEDIUM)
 
-      send_apb_write(d.addr_base , d.data_pattern );
+      send_bus_write(d.addr_base , d.data_pattern );
     endtask
   endclass
   // --------------------------------------------------------------------------
-  // READ_TXN – portable APB driver via parent sequence
+  // READ_TXN – portable bus driver via parent sequence
   // --------------------------------------------------------------------------
   class send_rd_action_executor extends stimulus_action_executor_base;
     `uvm_object_utils(send_rd_action_executor)
@@ -220,12 +206,12 @@ package action_executors_pkg;
       `uvm_info(get_type_name(),
                 $sformatf("-> READ TXN"), UVM_MEDIUM)
 
-      send_apb_read(d.addr_base , r32);
+      send_bus_read(d.addr_base , r32);
     endtask
   endclass
 
   // --------------------------------------------------------------------------
-  // TRAFFIC – portable APB driver via parent sequence
+  // TRAFFIC – portable bus driver via parent sequence
   // --------------------------------------------------------------------------
   class traffic_action_executor extends stimulus_action_executor_base;
     `uvm_object_utils(traffic_action_executor)
@@ -248,11 +234,11 @@ package action_executors_pkg;
     
       if (d.direction == DIR_WRITE) begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_write(d.addr_base + i*2, d.data_pattern + i); // masked in helper
+          send_bus_write(d.addr_base + i*2, d.data_pattern + i); // masked in helper
         end
       end else begin
         for (i=0;i<d.num_packets;i++) begin
-          send_apb_read(d.addr_base + i*2, r32);
+          send_bus_read(d.addr_base + i*2, r32);
         end
       end
     endtask
@@ -260,94 +246,64 @@ package action_executors_pkg;
   endclass
 
   // --------------------------------------------------------------------------
-  // APB_BASE_SEQ – launch apb_base_seq with optional override
+  // VIP_BASE_SEQ – delegate to the active VIP adapter
   // --------------------------------------------------------------------------
-  class apb_base_seq_action_executor extends stimulus_action_executor_base;
-    `uvm_object_utils(apb_base_seq_action_executor)
+  class vip_base_seq_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(vip_base_seq_action_executor)
 
-    static bit s_override_set = 0;
-
-    function new(string name="apb_base_seq_action_executor");
+    function new(string name="vip_base_seq_action_executor");
       super.new(name);
     endfunction
 
     virtual task execute(stimulus_action_t a);
       base_seq_action_data d;
-      int                   i, n;
-      bit                   do_override;
-      apb_base_seq          seq;
+      yaml_vip_adapter     adapter;
 
       if ((m_parent_seq==null) || (m_sequencer==null)) begin
         `uvm_error(get_type_name(), "No parent sequence or sequencer bound")
         return;
       end
 
-      `uvm_info(get_type_name(), "-> APB_BASE_SEQ", UVM_MEDIUM)
-      if (!$cast(d, a.action_data)) begin
-        n = 1;
-        do_override = 0;
-      end else begin
-        n = (d.num_iters <= 0) ? 1 : d.num_iters;
-        do_override = d.use_override;
+      adapter = get_adapter();
+      if (adapter == null) begin
+        `uvm_error(get_type_name(), "No VIP adapter configured for BASE sequence")
+        return;
       end
 
-      if (do_override && !s_override_set) begin
-        apb_seq_item::type_id::set_type_override(apb_override_tr::get_type());
-        s_override_set = 1;
-        `uvm_info(get_type_name(), "Enabled apb_override_tr type override", UVM_LOW)
-      end
-
-      for (i = 0; i < n; i++) begin
-        seq = apb_base_seq::type_id::create($sformatf("base_seq_%0d", i));
-        if (!seq.randomize()) begin
-          `uvm_warning(get_type_name(), $sformatf("Randomization failed for iteration %0d", i))
-        end
-        seq.start(m_sequencer, m_parent_seq);
-      end
+      `uvm_info(get_type_name(), "-> VIP_BASE_SEQ", UVM_MEDIUM)
+      if (!$cast(d, a.action_data)) d = null;
+      adapter.start_base_sequence(m_parent_seq, m_sequencer, d);
     endtask
   endclass
 
-
-
   // --------------------------------------------------------------------------
-  // APB_REGISTER_SEQ – launch apb_register_seq using configured reg block
+  // VIP_REGISTER_SEQ – delegate to the active VIP adapter
   // --------------------------------------------------------------------------
-  class apb_register_seq_action_executor extends stimulus_action_executor_base;
-    `uvm_object_utils(apb_register_seq_action_executor)
+  class vip_register_seq_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(vip_register_seq_action_executor)
 
-    function new(string name="apb_register_seq_action_executor");
+    function new(string name="vip_register_seq_action_executor");
       super.new(name);
     endfunction
 
     virtual task execute(stimulus_action_t a);
       register_seq_action_data d;
-      apb_reg_block            blk;
-      apb_register_seq         seq;
-      int                      i, n;
+      yaml_vip_adapter         adapter;
 
       if ((m_parent_seq==null) || (m_sequencer==null)) begin
         `uvm_error(get_type_name(), "No parent sequence or sequencer bound")
         return;
       end
 
-      `uvm_info(get_type_name(), "-> APB_REGISTER_SEQ", UVM_MEDIUM)
-      blk = get_reg_block();
-
-      if (blk == null) begin
-        `uvm_error(get_type_name(), "No APB register block configured for register sequence")
+      adapter = get_adapter();
+      if (adapter == null) begin
+        `uvm_error(get_type_name(), "No VIP adapter configured for REGISTER sequence")
         return;
       end
 
-      if (!$cast(d, a.action_data)) n = 1; else n = (d.num_iters <= 0) ? 1 : d.num_iters;
-
-      for (i = 0; i < n; i++) begin
-        seq = apb_register_seq::type_id::create($sformatf("reg_seq_%0d", i));
-        seq.model = blk;
-        if (!seq.randomize()) begin
-          `uvm_warning(get_type_name(), $sformatf("Randomization failed for iteration %0d", i))
-        end
-        seq.start(m_sequencer, m_parent_seq);
-      end
+      `uvm_info(get_type_name(), "-> VIP_REGISTER_SEQ", UVM_MEDIUM)
+      if (!$cast(d, a.action_data)) d = null;
+      adapter.start_register_sequence(m_parent_seq, m_sequencer, d);
     endtask
   endclass
 
@@ -380,7 +336,7 @@ package action_executors_pkg;
             exec_proxy_seq::type_id::create($sformatf("proxy_%0d", j));
         proxy.m_sub = sub;
         fork
-          proxy.start(m_sequencer); // start on the same APB sequencer
+          proxy.start(m_sequencer); // start on the same sequencer
         join_none
       end
 

@@ -1,6 +1,5 @@
-package avry_yaml_types_pkg;
+package yaml_types_pkg;
   import uvm_pkg::*; `include "uvm_macros.svh"
-  import apb_pkg::*;
 
   // Direction for traffic actions
   typedef enum int unsigned { DIR_READ, DIR_WRITE } dir_e;
@@ -80,8 +79,8 @@ package avry_yaml_types_pkg;
   endclass
 
   // Scenario-wide configuration (sequence-level defaults)
-  class avry_scenario_cfg extends uvm_object;
-    `uvm_object_utils(avry_scenario_cfg)
+  class yaml_scenario_cfg extends uvm_object;
+    `uvm_object_utils(yaml_scenario_cfg)
 
     // Identity
     string       scenario_name;
@@ -99,7 +98,7 @@ package avry_yaml_types_pkg;
     // Action list (filled by YAML generator)
     stimulus_action_t action_list[$];
 
-    function new(string name="avry_scenario_cfg");
+    function new(string name="yaml_scenario_cfg");
       super.new(name);
       scenario_name  = "";
       timeout_value  = 10000;
