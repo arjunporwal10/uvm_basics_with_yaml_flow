@@ -78,6 +78,23 @@ package yaml_types_pkg;
     function new(string name="parallel_group_t"); super.new(name); endfunction
   endclass
 
+  // Scenario include payload (allows reusing another scenario's actions)
+  class scenario_include_action_data extends uvm_object;
+    string scenario_name;
+    string from_file;
+
+    `uvm_object_utils_begin(scenario_include_action_data)
+      `uvm_field_string(scenario_name, UVM_ALL_ON)
+      `uvm_field_string(from_file,    UVM_ALL_ON)
+    `uvm_object_utils_end
+
+    function new(string name="scenario_include_action_data");
+      super.new(name);
+      scenario_name = "";
+      from_file     = "";
+    endfunction
+  endclass
+
   // Scenario-wide configuration (sequence-level defaults)
   class yaml_scenario_cfg extends uvm_object;
     `uvm_object_utils(yaml_scenario_cfg)

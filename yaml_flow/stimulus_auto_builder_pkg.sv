@@ -101,6 +101,20 @@ package stimulus_auto_builder_pkg;
       p=new(); for (i=0;i<subs.size();i++) p.parallel_actions.push_back(subs[i]);
       a.action_data=p; return a;
     endfunction
+
+    static function stimulus_action_t build_scenario_include(string scenario_name,
+                                                             string file_path="");
+      stimulus_action_t             a;
+      scenario_include_action_data d;
+
+      a = new();
+      a.action_type = "SCENARIO_INCLUDE";
+      d = new();
+      d.scenario_name = scenario_name;
+      d.from_file     = file_path;
+      a.action_data   = d;
+      return a;
+    endfunction
   endclass
 endpackage
 
