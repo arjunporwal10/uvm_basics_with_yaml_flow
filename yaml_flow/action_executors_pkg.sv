@@ -3,6 +3,8 @@ package action_executors_pkg;
   import uvm_pkg::*;                 `include "uvm_macros.svh"
   import yaml_types_pkg::*;          // stimulus_action_t, traffic_action_data, parallel_group_t, DIR_*, etc.
   import vip_plugins_pkg::*;
+  import scenario_config_pkg::*;
+  import stimulus_auto_builder_pkg::*;
 
   // --------------------------------------------------------------------------
   // Base Executor: stores parent sequence & sequencer; provides helpers
@@ -304,6 +306,92 @@ package action_executors_pkg;
       `uvm_info(get_type_name(), "-> VIP_REGISTER_SEQ", UVM_MEDIUM)
       if (!$cast(d, a.action_data)) d = null;
       adapter.start_register_sequence(m_parent_seq, m_sequencer, d);
+    endtask
+  endclass
+
+  // --------------------------------------------------------------------------
+  // SCENARIO_INCLUDE – execute actions from another scenario
+  // --------------------------------------------------------------------------
+  class scenario_include_action_executor extends stimulus_action_executor_base;
+    `uvm_object_utils(scenario_include_action_executor)
+
+    static string m_include_stack[string][$];
+
+    function new(string name="scenario_include_action_executor");
+      super.new(name);
+    endfunction
+
+    static function string get_seq_key(uvm_sequence_base seq);
+      string key;
+      if (seq == null) return "global";
+      key = seq.get_full_name();
+      if (key == "") key = seq.get_name();
+      if (key == "") key = $sformatf("%s@%0h", seq.get_type_name(), seq);
+      return key;
+    endfunction
+
+    virtual task execute(stimulus_action_t a);
+      scenario_include_action_data d;
+      yaml_scenario_cfg            child_cfg;
+      string                       key;
+      string                       path_desc;
+      int                          i;
+      int                          j;
+
+      if (!$cast(d, a.action_data) || (d == null)) begin
+        `uvm_error(get_type_name(), "Missing/invalid scenario include payload")
+        return;
+      end
+
+      if (d.scenario_name == "") begin
+        `uvm_error(get_type_name(), "SCENARIO_INCLUDE missing scenario_name")
+        return;
+      end
+
+      key = get_seq_key(m_parent_seq);
+
+      foreach (m_include_stack[key][i]) begin
+        if (m_include_stack[key][i] == d.scenario_name) begin
+          path_desc = "";
+          for (j = 0; j < m_include_stack[key].size(); j++) begin
+            if (j != 0) path_desc = {path_desc, " -> "};
+            path_desc = {path_desc, m_include_stack[key][j]};
+          end
+          if (path_desc != "") path_desc = {path_desc, " -> "};
+          path_desc = {path_desc, d.scenario_name};
+          `uvm_error(get_type_name(), $sformatf("Recursive scenario include detected: %s", path_desc))
+          return;
+        end
+      end
+
+      `uvm_info(get_type_name(),
+                $sformatf("-> SCENARIO_INCLUDE '%s'", d.scenario_name),
+                UVM_MEDIUM)
+
+      m_include_stack[key].push_back(d.scenario_name);
+
+      child_cfg = scenario_config_pkg::get_scenario_by_name(d.scenario_name);
+      if ((child_cfg == null) || (child_cfg.scenario_name != d.scenario_name)) begin
+        `uvm_error(get_type_name(),
+                  $sformatf("Scenario '%s' not found for include", d.scenario_name))
+        m_include_stack[key].pop_back();
+        if (m_include_stack[key].size() == 0) m_include_stack.delete(key);
+        return;
+      end
+
+      if (child_cfg.action_list.size() == 0) begin
+        `uvm_info(get_type_name(),
+                  $sformatf("Auto-building child scenario '%s'", d.scenario_name),
+                  UVM_LOW)
+        stimulus_auto_builder::build(child_cfg, child_cfg.action_list);
+      end
+
+      for (i = 0; i < child_cfg.action_list.size(); i++) begin
+        action_executor_registry::dispatch(child_cfg.action_list[i], m_parent_seq, m_sequencer);
+      end
+
+      m_include_stack[key].pop_back();
+      if (m_include_stack[key].size() == 0) m_include_stack.delete(key);
     endtask
   endclass
 

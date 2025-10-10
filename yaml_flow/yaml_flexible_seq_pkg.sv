@@ -35,6 +35,8 @@ package yaml_seq_pkg;
       action_executor_registry::register("PARALLEL_GROUP", h);
       h = serial_group_action_executor  ::type_id::create("exec_ser");
       action_executor_registry::register("SERIAL_GROUP", h);
+      h = scenario_include_action_executor::type_id::create("exec_include");
+      action_executor_registry::register("SCENARIO_INCLUDE", h);
       h = send_wr_action_executor       ::type_id::create("exec_wr");
       action_executor_registry::register("WRITE_TXN", h);
       h = send_rd_action_executor       ::type_id::create("exec_rd");
