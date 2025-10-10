@@ -27,6 +27,10 @@ initial begin
     #5ns;
     forever #5ns pclk = !pclk;
 end
+initial
+begin
+$vcdpluson(0,top);
+end
 
 initial begin
     // Set interfaces for each of the agents in the testbench from here.
