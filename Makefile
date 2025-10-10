@@ -1,15 +1,6 @@
-# Added YAML flow support
-YAML_FLOW = yaml_flow/yaml_flow_types_pkg.sv \
-            yaml_flow/stimulus_auto_builder_pkg.sv \
-            yaml_flow/action_executors_pkg.sv \
-            yaml_flow/vip_plugins_pkg.sv \
-            yaml_flow/scenario_config_pkg.sv \
-            yaml_flow/yaml_flexible_seq_pkg.sv \
-            yaml_flow/yaml_tests_pkg.sv
-
 help:
-	@echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
-	@echo "  SIMULATOR can be 'vcs'."
+        @echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
+        @echo "  SIMULATOR can be 'vcs'."
 	@echo "Example: make vcs TEST=apb_read_write_test"
 	@echo "  Runs a simulation for apb_read_write_test using VCS."
 	@echo "YAML Flow:"
@@ -43,9 +34,6 @@ compile_files += -f $(ROOT)/agents/example_bus/sequence_lib/src/filelist.f
 compile_files += -f $(ROOT)/env/src/filelist.f
 compile_files += -f $(ROOT)/tb/src/filelist.f
 compile_files += -f $(ROOT)/src/filelist.f
-
-# --- ADD: compile the YAML flow SystemVerilog files too ---
-compile_files += $(addprefix $(ROOT)/, $(YAML_FLOW))
 
 # Allow passing a scenario name to YAML-driven tests (optional)
 run_opts      := +UVM_TESTNAME=$(TEST)
