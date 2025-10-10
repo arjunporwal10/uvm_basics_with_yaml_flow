@@ -55,6 +55,15 @@ package scenario_config_pkg;
     cfg.action_list.push_back(a_0);
     cfg.action_list.push_back(a_1);
   end
+  else if (name == "repeat_reset_traffic") begin
+    cfg.scenario_name = "repeat_reset_traffic";
+    cfg.timeout_value = 30000;
+    cfg.action_list.delete();
+    a_0 = stimulus_auto_builder::build_scenario_include("reset_traffic", "reset_traffic.yaml");
+    a_1 = stimulus_auto_builder::build_scenario_include("reset_traffic", "reset_traffic.yaml");
+    cfg.action_list.push_back(a_0);
+    cfg.action_list.push_back(a_1);
+  end
   else if (name == "reset_traffic") begin
     cfg.scenario_name = "reset_traffic";
     cfg.timeout_value = 10000;

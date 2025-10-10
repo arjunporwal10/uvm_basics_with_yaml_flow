@@ -1,0 +1,20 @@
+{
+  "scenario_name": "repeat_reset_traffic",
+  "timeout_value": 30000,
+  "action_list": [
+    {
+      "action_type": "SCENARIO_INCLUDE",
+      "action_data": {
+        "scenario_name": "reset_traffic",
+        "from_file": "reset_traffic.yaml"
+      }
+    },
+    {
+      "action_type": "SCENARIO_INCLUDE",
+      "action_data": {
+        "scenario_name": "reset_traffic",
+        "from_file": "reset_traffic.yaml"
+      }
+    }
+  ]
+}
