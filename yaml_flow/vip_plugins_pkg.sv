@@ -4,6 +4,9 @@ package vip_plugins_pkg;
   import chip_seq_lib_pkg::*;
   import yaml_apb_seq_pkg::*;
   import yaml_example_bus_seq_pkg::*;
+  import apb_pkg::*;
+  import apb_regs_pkg::*;
+  import apb_test_pkg::*;
 
   class yaml_vip_context extends uvm_object;
     `uvm_object_utils(yaml_vip_context)
