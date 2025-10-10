@@ -11,6 +11,29 @@ Files are under `yaml_flow/`:
 - `tools/yaml2sv.py`: tiny YAML/JSON converter (no external deps)
 - `yaml/*.yaml`: example scenarios
 
+### Reusing scenarios
+
+Scenarios can include the actions from another scenario by using the
+`SCENARIO_INCLUDE` action type.  The payload only needs the `scenario_name` to
+reference; an optional `from_file` string documents where the referenced YAML
+originated.  When the flexible sequence encounters an include it loads the
+child scenario (generating it on the fly if necessary) and dispatches each of
+its actions in place.
+
+Example snippet:
+
+```yaml
+action_list:
+  - action_type: SCENARIO_INCLUDE
+    action_data:
+      scenario_name: reset_traffic
+  - action_type: SCENARIO_INCLUDE
+    action_data:
+      scenario_name: reset_traffic
+```
+
+This executes the `reset_traffic` stimulus twice without duplicating its YAML.
+
 ## Build
 1. Generate scenario_config_pkg.sv:
    ```
