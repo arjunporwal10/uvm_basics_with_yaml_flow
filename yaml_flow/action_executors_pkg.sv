@@ -106,7 +106,7 @@ package action_executors_pkg;
       `uvm_info("EXEC_DISP",
                 $sformatf("Dispatching action_type='%s' %0d time(s)",
                           a.action_type, repeat_count),
-                UVM_DEBUG);
+                UVM_MEDIUM);
 
       for (idx = 0; idx < repeat_count; idx++) begin
         // Clone the prototype so that each dispatch gets an isolated
