@@ -147,7 +147,7 @@ package vip_plugins_pkg;
     virtual task start_base_sequence(uvm_sequence_base parent_seq,
                                      uvm_sequencer_base seqr,
                                      base_seq_action_data cfg);
-      apb_base_seq seq;
+      uvm_sequence_base seq;
       int n;
       bit do_override;
 
