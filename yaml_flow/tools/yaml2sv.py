@@ -31,6 +31,12 @@ def sv_footer():
 def sv_id(x):  # placeholder if you later want to sanitize/escape identifiers
     return x
 
+def sv_string_literal(x):
+    """Return a SystemVerilog-compatible quoted string literal."""
+    if x is None:
+        x = ""
+    return json.dumps(str(x))
+
 # -----------------------------
 # Emission helpers
 # -----------------------------
@@ -106,6 +112,24 @@ def emit_actions(lst, prefix):
             stmts += sub_stmts
             names = ", ".join([f"{subp}{j}" for j in range(len(subs))])
             stmts.append(f"    {var_name} = stimulus_auto_builder::build_serial('{{{names}}});")
+        elif at == "SCENARIO_INCLUDE":
+            scen = data.get("scenario_name", "")
+            if not scen:
+                stmts.append(
+                    f"    {var_name} = stimulus_auto_builder::build_reset(); // missing scenario_name for include"
+                )
+            else:
+                scen_lit = sv_string_literal(scen)
+                from_file = data.get("from_file", "")
+                if from_file:
+                    file_lit = sv_string_literal(from_file)
+                    stmts.append(
+                        f"    {var_name} = stimulus_auto_builder::build_scenario_include({scen_lit}, {file_lit});"
+                    )
+                else:
+                    stmts.append(
+                        f"    {var_name} = stimulus_auto_builder::build_scenario_include({scen_lit});"
+                    )
         else:
             # unknown -> default to RESET
             stmts.append(
