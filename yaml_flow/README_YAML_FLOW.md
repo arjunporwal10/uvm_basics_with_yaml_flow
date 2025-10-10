@@ -18,21 +18,29 @@ Scenarios can include the actions from another scenario by using the
 reference; an optional `from_file` string documents where the referenced YAML
 originated.  When the flexible sequence encounters an include it loads the
 child scenario (generating it on the fly if necessary) and dispatches each of
-its actions in place.
+its actions in place.  Any action (including groups and includes) can also
+specify a `repeat` field to automatically replay that action multiple times.
 
 Example snippet:
 
 ```yaml
 action_list:
-  - action_type: SCENARIO_INCLUDE
+  - action_type: RESET
+    repeat: 4           # perform reset four times
+  - action_type: TRAFFIC
+    repeat: 5           # drive the same TRAFFIC action five times
     action_data:
-      scenario_name: reset_traffic
+      direction: write
+      num_packets: 1
   - action_type: SCENARIO_INCLUDE
+    repeat: 2           # include another scenario twice
     action_data:
       scenario_name: reset_traffic
 ```
 
-This executes the `reset_traffic` stimulus twice without duplicating its YAML.
+This executes the `RESET` action four times, drives the write-only traffic
+five times, and finally includes the `reset_traffic` stimulus twice without
+duplicating its YAML.
 
 ## Build
 1. Generate scenario_config_pkg.sv:

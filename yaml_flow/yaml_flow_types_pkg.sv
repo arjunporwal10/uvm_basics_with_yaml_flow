@@ -8,14 +8,17 @@ package yaml_types_pkg;
   class stimulus_action_t extends uvm_object;
     string     action_type;   // "RESET","TRAFFIC","PARALLEL_GROUP","SERIAL_GROUP",...
     uvm_object action_data;   // payload specific to action_type (may be null)
+    int unsigned repeat_count; // number of times to dispatch this action (>=1)
 
     `uvm_object_utils_begin(stimulus_action_t)
       `uvm_field_string(action_type, UVM_ALL_ON)
       `uvm_field_object(action_data, UVM_ALL_ON)
+      `uvm_field_int   (repeat_count, UVM_ALL_ON)
     `uvm_object_utils_end
 
     function new(string name="stimulus_action_t");
       super.new(name);
+      repeat_count = 1;
     endfunction
   endclass
 

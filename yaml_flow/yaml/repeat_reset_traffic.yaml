@@ -4,13 +4,7 @@
   "action_list": [
     {
       "action_type": "SCENARIO_INCLUDE",
-      "action_data": {
-        "scenario_name": "reset_traffic",
-        "from_file": "reset_traffic.yaml"
-      }
-    },
-    {
-      "action_type": "SCENARIO_INCLUDE",
+      "repeat": 2,
       "action_data": {
         "scenario_name": "reset_traffic",
         "from_file": "reset_traffic.yaml"

@@ -1,0 +1,23 @@
+{
+  "scenario_name": "repeat_examples",
+  "timeout_value": 20000,
+  "action_list": [
+    {
+      "action_type": "RESET",
+      "repeat": 4
+    },
+    {
+      "action_type": "TRAFFIC",
+      "repeat": 5,
+      "action_data": {
+        "direction": "write",
+        "num_packets": 1,
+        "addr_base": 0,
+        "data_pattern": 2779077210
+      }
+    },
+    {
+      "action_type": "SELF_CHECK"
+    }
+  ]
+}
