@@ -5,8 +5,11 @@ package scenario_config_pkg;
   function automatic yaml_scenario_cfg get_scenario_by_name(string name);
     yaml_scenario_cfg cfg = yaml_scenario_cfg::type_id::create(name);
     stimulus_action_t a_0, a_0_0, a_0_1, a_0_2, a_1, a_1_0;
-    stimulus_action_t a_1_1, a_1_2, a_2, a_3, a_3_0, a_3_1;
-    stimulus_action_t a_3_1_0, a_3_1_1, a_4;
+    stimulus_action_t a_1_1, a_1_1_0, a_1_1_1, a_1_2, a_1_2_0, a_1_2_1;
+    stimulus_action_t a_1_2_1_0, a_1_2_1_1, a_1_2_1_2, a_2, a_3, a_3_0;
+    stimulus_action_t a_3_1, a_3_1_0, a_3_1_1, a_3_2, a_3_2_0, a_3_2_1;
+    stimulus_action_t a_4, a_4_0, a_4_1, a_4_2, a_4_2_0, a_4_2_1;
+    stimulus_action_t a_5;
     if (0) ;
   else if (name == "only_read") begin
     cfg.scenario_name = "only_read";
@@ -107,6 +110,45 @@ package scenario_config_pkg;
     cfg.action_list.push_back(a_2);
     cfg.action_list.push_back(a_3);
     cfg.action_list.push_back(a_4);
+  end
+  else if (name == "ultimate_system_stress") begin
+    cfg.scenario_name = "ultimate_system_stress";
+    cfg.timeout_value = 60000;
+    cfg.action_list.delete();
+    a_0 = stimulus_auto_builder::build_reset();
+    a_1_0 = stimulus_auto_builder::build_reset(); // unknown APB_BASE_SEQ
+    a_1_1_0 = stimulus_auto_builder::build_reset(); // unknown APB_REGISTER_SEQ
+    a_1_1_1 = stimulus_auto_builder::build_traffic(DIR_WRITE, 6, 32, 32'h12345678);
+    a_1_1 = stimulus_auto_builder::build_parallel('{a_1_1_0, a_1_1_1});
+    a_1_2_0 = stimulus_auto_builder::build_traffic(DIR_READ, 4, 48, 32'h87654321);
+    a_1_2_1_0 = stimulus_auto_builder::build_write_tr(64, 32'h00ABCDEF);
+    a_1_2_1_1 = stimulus_auto_builder::build_read_tr(64);
+    a_1_2_1_2 = stimulus_auto_builder::build_traffic(DIR_WRITE, 3, 80, 32'hCCCCCCCC);
+    a_1_2_1 = stimulus_auto_builder::build_parallel('{a_1_2_1_0, a_1_2_1_1, a_1_2_1_2});
+    a_1_2 = stimulus_auto_builder::build_serial('{a_1_2_0, a_1_2_1});
+    a_1 = stimulus_auto_builder::build_serial('{a_1_0, a_1_1, a_1_2});
+    a_2 = stimulus_auto_builder::build_self_check();
+    a_3_0 = stimulus_auto_builder::build_error_injection();
+    a_3_1_0 = stimulus_auto_builder::build_traffic(DIR_READ, 5, 96, 32'h01234567);
+    a_3_1_1 = stimulus_auto_builder::build_self_check();
+    a_3_1 = stimulus_auto_builder::build_serial('{a_3_1_0, a_3_1_1});
+    a_3_2_0 = stimulus_auto_builder::build_traffic(DIR_WRITE, 2, 104, 32'hFF00FF00);
+    a_3_2_1 = stimulus_auto_builder::build_traffic(DIR_READ, 2, 108, 32'hAABBCCDD);
+    a_3_2 = stimulus_auto_builder::build_parallel('{a_3_2_0, a_3_2_1});
+    a_3 = stimulus_auto_builder::build_parallel('{a_3_0, a_3_1, a_3_2});
+    a_4_0 = stimulus_auto_builder::build_self_check();
+    a_4_1 = stimulus_auto_builder::build_traffic(DIR_WRITE, 4, 120, 32'h55555555);
+    a_4_2_0 = stimulus_auto_builder::build_read_tr(120);
+    a_4_2_1 = stimulus_auto_builder::build_read_tr(124);
+    a_4_2 = stimulus_auto_builder::build_parallel('{a_4_2_0, a_4_2_1});
+    a_4 = stimulus_auto_builder::build_serial('{a_4_0, a_4_1, a_4_2});
+    a_5 = stimulus_auto_builder::build_self_check();
+    cfg.action_list.push_back(a_0);
+    cfg.action_list.push_back(a_1);
+    cfg.action_list.push_back(a_2);
+    cfg.action_list.push_back(a_3);
+    cfg.action_list.push_back(a_4);
+    cfg.action_list.push_back(a_5);
   end
     return cfg;
   endfunction

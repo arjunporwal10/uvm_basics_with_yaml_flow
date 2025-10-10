@@ -1,11 +1,11 @@
 help:
-        @echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
-        @echo "  SIMULATOR can be 'vcs'."
+	@echo "Usage: make SIMULATOR TEST=test_name [SCEN=name] [GUI=1] [DEBUG=1]"
+	@echo "  SIMULATOR can be 'vcs'."
 	@echo "Example: make vcs TEST=apb_read_write_test"
 	@echo "  Runs a simulation for apb_read_write_test using VCS."
 	@echo "YAML Flow:"
 	@echo "  make vcs TEST=yaml_test SCEN=reset_traffic"
-        @echo "  (yaml_test comes from yaml_flow/yaml_tests_pkg.sv)"
+	@echo "  (yaml_test comes from yaml_flow/yaml_tests_pkg.sv)"
 	@echo "Quick rerun without rebuilding: make sim TEST=... [SCEN=...]"
 
 # conditionals
