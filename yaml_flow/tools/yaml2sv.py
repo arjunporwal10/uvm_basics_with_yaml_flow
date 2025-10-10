@@ -58,6 +58,14 @@ def emit_actions(lst, prefix):
         at = a["action_type"]
         data = a.get("action_data", {})
 
+        repeat = a.get("repeat", 1)
+        try:
+            repeat = int(repeat)
+        except (TypeError, ValueError):
+            repeat = 1
+        if repeat <= 0:
+            repeat = 1
+
         if at == "RESET":
             stmts.append(f"    {var_name} = stimulus_auto_builder::build_reset();")
         elif at == "SELF_CHECK":
@@ -135,6 +143,9 @@ def emit_actions(lst, prefix):
             stmts.append(
                 f"    {var_name} = stimulus_auto_builder::build_reset(); // unknown {at}"
             )
+
+        if repeat != 1:
+            stmts.append(f"    {var_name}.repeat_count = {repeat};")
 
     return var_names, stmts
 

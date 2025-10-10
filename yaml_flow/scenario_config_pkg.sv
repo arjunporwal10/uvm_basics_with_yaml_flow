@@ -58,14 +58,26 @@ package scenario_config_pkg;
     cfg.action_list.push_back(a_0);
     cfg.action_list.push_back(a_1);
   end
+  else if (name == "repeat_examples") begin
+    cfg.scenario_name = "repeat_examples";
+    cfg.timeout_value = 20000;
+    cfg.action_list.delete();
+    a_0 = stimulus_auto_builder::build_reset();
+    a_0.repeat_count = 4;
+    a_1 = stimulus_auto_builder::build_traffic(DIR_WRITE, 1, 0, 32'hA5A55A5A);
+    a_1.repeat_count = 5;
+    a_2 = stimulus_auto_builder::build_self_check();
+    cfg.action_list.push_back(a_0);
+    cfg.action_list.push_back(a_1);
+    cfg.action_list.push_back(a_2);
+  end
   else if (name == "repeat_reset_traffic") begin
     cfg.scenario_name = "repeat_reset_traffic";
     cfg.timeout_value = 30000;
     cfg.action_list.delete();
     a_0 = stimulus_auto_builder::build_scenario_include("reset_traffic", "reset_traffic.yaml");
-    a_1 = stimulus_auto_builder::build_scenario_include("reset_traffic", "reset_traffic.yaml");
+    a_0.repeat_count = 2;
     cfg.action_list.push_back(a_0);
-    cfg.action_list.push_back(a_1);
   end
   else if (name == "reset_traffic") begin
     cfg.scenario_name = "reset_traffic";
@@ -121,7 +133,7 @@ package scenario_config_pkg;
     a_1_1_1 = stimulus_auto_builder::build_traffic(DIR_WRITE, 6, 32, 32'h12345678);
     a_1_1 = stimulus_auto_builder::build_parallel('{a_1_1_0, a_1_1_1});
     a_1_2_0 = stimulus_auto_builder::build_traffic(DIR_READ, 4, 48, 32'h87654321);
-    a_1_2_1_0 = stimulus_auto_builder::build_write_tr(64, 32'h00ABCDEF);
+    a_1_2_1_0 = stimulus_auto_builder::build_write_tr(64, 32'h000ABCDE);
     a_1_2_1_1 = stimulus_auto_builder::build_read_tr(64);
     a_1_2_1_2 = stimulus_auto_builder::build_traffic(DIR_WRITE, 3, 80, 32'hCCCCCCCC);
     a_1_2_1 = stimulus_auto_builder::build_parallel('{a_1_2_1_0, a_1_2_1_1, a_1_2_1_2});

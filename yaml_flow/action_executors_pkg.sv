@@ -85,6 +85,8 @@ package action_executors_pkg;
                          uvm_sequencer_base seqr);
       exec_base_t proto;
       exec_base_t ex;
+      int unsigned repeat_count;
+      int unsigned idx;
       if (a == null) begin
         `uvm_error("EXEC_DISP", "Null action")
         return;
@@ -99,18 +101,22 @@ package action_executors_pkg;
         return;
       end
 
-      // Clone the prototype so that each dispatch gets an isolated
-      // executor instance.  This avoids shared state when multiple
-      // actions (e.g. from a PARALLEL_GROUP) execute concurrently.
-      ex = exec_base_t'(proto.clone());
-      if (ex == null) begin
-        `uvm_error("EXEC_DISP", $sformatf("Failed to clone executor for action_type='%s'", a.action_type))
-        return;
+      repeat_count = (a.repeat_count == 0) ? 1 : a.repeat_count;
+
+      for (idx = 0; idx < repeat_count; idx++) begin
+        // Clone the prototype so that each dispatch gets an isolated
+        // executor instance.  This avoids shared state when multiple
+        // actions (e.g. from a PARALLEL_GROUP) execute concurrently.
+        ex = exec_base_t'(proto.clone());
+        if (ex == null) begin
+          `uvm_error("EXEC_DISP", $sformatf("Failed to clone executor for action_type='%s'", a.action_type))
+          return;
+        end
+        ex.set_name($sformatf("%s_exec_%0d", a.action_type, m_next_inst_id++));
+        ex.m_parent_seq = parent_seq;
+        ex.m_sequencer  = seqr;
+        ex.execute(a);
       end
-      ex.set_name($sformatf("%s_exec_%0d", a.action_type, m_next_inst_id++));
-      ex.m_parent_seq = parent_seq;
-      ex.m_sequencer  = seqr;
-      ex.execute(a);
     endtask
 
   endclass
