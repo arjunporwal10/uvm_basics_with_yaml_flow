@@ -12,4 +12,11 @@ $ROOT/yaml_flow/yaml_flexible_seq_pkg.sv
 $ROOT/yaml_flow/yaml_tests_pkg.sv
 $ROOT/yaml_flow/scenario_config_pkg.sv
 $ROOT/src/apb_test_pkg.sv
+$ROOT/yaml_flow/yaml_flow_types_pkg.sv
+$ROOT/yaml_flow/stimulus_auto_builder_pkg.sv
+$ROOT/yaml_flow/scenario_config_pkg.sv
+$ROOT/yaml_flow/vip_plugins_pkg.sv
+$ROOT/yaml_flow/action_executors_pkg.sv
+$ROOT/yaml_flow/yaml_flexible_seq_pkg.sv
+$ROOT/yaml_flow/yaml_tests_pkg.sv
 $ROOT/src/example_test_pkg.sv

@@ -6,7 +6,6 @@ package yaml_apb_seq_pkg;
 
   import apb_pkg::*;
   import apb_regs_pkg::*;
-  import apb_test_pkg::*;
   import chip_seq_lib_pkg::*;
 
   // Reuse the existing APB sequence library that lives under the agent.
