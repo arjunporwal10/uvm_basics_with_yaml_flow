@@ -1,6 +1,9 @@
 package vip_plugins_pkg;
   import uvm_pkg::*;                 `include "uvm_macros.svh"
   import yaml_types_pkg::*;
+  import chip_seq_lib_pkg::*;
+  import yaml_apb_seq_pkg::*;
+  import yaml_example_bus_seq_pkg::*;
 
   class yaml_vip_context extends uvm_object;
     `uvm_object_utils(yaml_vip_context)
@@ -101,48 +104,9 @@ package vip_plugins_pkg;
     endfunction
   endclass
 
-  class yaml_apb_vip_adapter;
-  class yaml_example_bus_vip_adapter;
-
-  class yaml_vip_registry;
-    static yaml_vip_adapter m_registry[string];
-    static bit m_defaults_loaded = 0;
-
-    static function void register_adapter(yaml_vip_adapter adapter, string vendor_name="");
-      if (adapter == null) begin
-        `uvm_fatal("VIP_REG", "Attempting to register null adapter")
-      end
-      if (vendor_name != "") begin
-        adapter.set_vendor_key(vendor_name);
-      end
-      if (adapter.vendor_key() == "") begin
-        `uvm_fatal("VIP_REG", "Adapter registered with empty vendor key")
-      end
-      m_registry[adapter.vendor_key()] = adapter;
-    endfunction
-
-    static function yaml_vip_adapter get_adapter(string vendor_name);
-      load_defaults_if_needed();
-      if (!m_registry.exists(vendor_name)) begin
-        `uvm_warning("VIP_REG", $sformatf("No adapter registered for VIP '%s'", vendor_name))
-        return null;
-      end
-      return m_registry[vendor_name];
-    endfunction
-
-    static function void load_defaults_if_needed();
-      if (m_defaults_loaded) return;
-      m_defaults_loaded = 1;
-      register_adapter(yaml_apb_vip_adapter::type_id::create("apb_default_adapter"));
-      register_adapter(yaml_example_bus_vip_adapter::type_id::create("example_default_adapter"));
-    endfunction
-  endclass
-
   // --------------------------------------------------------------------------
   // APB VIP adapter
   // --------------------------------------------------------------------------
-  import yaml_apb_seq_pkg::*;
-
   class yaml_apb_vip_adapter extends yaml_vip_adapter;
     `uvm_object_utils(yaml_apb_vip_adapter)
 
@@ -245,8 +209,6 @@ package vip_plugins_pkg;
   // --------------------------------------------------------------------------
   // Example bus VIP adapter (console logging demonstration)
   // --------------------------------------------------------------------------
-  import yaml_example_bus_seq_pkg::*;
-
   class yaml_example_bus_vip_adapter extends yaml_vip_adapter;
     `uvm_object_utils(yaml_example_bus_vip_adapter)
 
@@ -298,6 +260,40 @@ package vip_plugins_pkg;
         seq.start(seqr, parent_seq);
       end
     endtask
+  endclass
+
+  class yaml_vip_registry;
+    static yaml_vip_adapter m_registry[string];
+    static bit m_defaults_loaded = 0;
+
+    static function void register_adapter(yaml_vip_adapter adapter, string vendor_name="");
+      if (adapter == null) begin
+        `uvm_fatal("VIP_REG", "Attempting to register null adapter")
+      end
+      if (vendor_name != "") begin
+        adapter.set_vendor_key(vendor_name);
+      end
+      if (adapter.vendor_key() == "") begin
+        `uvm_fatal("VIP_REG", "Adapter registered with empty vendor key")
+      end
+      m_registry[adapter.vendor_key()] = adapter;
+    endfunction
+
+    static function yaml_vip_adapter get_adapter(string vendor_name);
+      load_defaults_if_needed();
+      if (!m_registry.exists(vendor_name)) begin
+        `uvm_warning("VIP_REG", $sformatf("No adapter registered for VIP '%s'", vendor_name))
+        return null;
+      end
+      return m_registry[vendor_name];
+    endfunction
+
+    static function void load_defaults_if_needed();
+      if (m_defaults_loaded) return;
+      m_defaults_loaded = 1;
+      register_adapter(yaml_apb_vip_adapter::type_id::create("apb_default_adapter"));
+      register_adapter(yaml_example_bus_vip_adapter::type_id::create("example_default_adapter"));
+    endfunction
   endclass
 
 endpackage

@@ -1,4 +1,7 @@
 +incdir+$ROOT/agents/apb/src/
++incdir+$ROOT/agents/apb/sequence_lib/src/
++incdir+$ROOT/agents/example_bus/sequence_lib/src/
++incdir+$ROOT/sequence_lib/src/
 +incdir+$ROOT/env/src/
 +incdir+$ROOT/yaml_flow
 $ROOT/yaml_flow/yaml_flow_types_pkg.sv
